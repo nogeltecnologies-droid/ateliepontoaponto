@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin - Ateliê Ponto a Ponto</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDK (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <style>
+        .sidebar-item:hover { background-color: #f3e5e5; color: #D4AF37; }
+        .active-tab { background-color: #f3e5e5; color: #D4AF37; border-right: 4px solid #D4AF37; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .status-badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 99px; font-weight: bold; text-transform: uppercase; }
+        
+        /* Estilo para a tela de login */
+        #login-overlay {
+            position: fixed;
+            inset: 0;
+            background: #fff;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800">
+
+    <!-- Tela de Login/Acesso -->
+    <div id="login-overlay">
+        <div class="max-w-md w-full p-8 bg-white rounded-3xl shadow-2xl border border-gray-100 text-center">
+            <div class="w-20 h-20 bg-pink-50 text-atelier-gold rounded-full flex items-center justify-center mx-auto mb-6 border border-pink-100">
+                <i class="fas fa-lock text-3xl"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2 italic font-serif">Acesso Restrito</h2>
+            <p class="text-gray-400 text-sm mb-8 font-medium uppercase tracking-widest">Painel Administrativo</p>
+            
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">E-mail do Administrador</label>
+                    <input type="email" id="login-email" placeholder="admin@exemplo.com" class="w-full p-4 bg-gray-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-atelier-gold font-bold transition">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">Código de Confirmação</label>
+                    <input type="password" id="login-code" placeholder="••••••" class="w-full p-4 bg-gray-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-atelier-gold font-bold transition tracking-widest">
+                </div>
+                <button onclick="handleLogin()" class="w-full bg-gray-900 text-white font-black py-4 rounded-2xl hover:bg-atelier-gold transition shadow-lg shadow-gray-200 uppercase tracking-widest text-xs mt-4">
+                    Entrar no Painel
+                </button>
+                <p id="login-error" class="text-red-500 text-[10px] font-black text-center mt-2 hidden uppercase italic">Código ou e-mail incorretos.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interface Principal (Oculta até o login) -->
+    <div id="app-content" class="flex min-h-screen opacity-0 transition-opacity duration-500">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white shadow-xl hidden md:block border-r border-gray-100">
+            <div class="p-6">
+                <h1 class="text-2xl font-bold text-gray-800 italic">Admin <span class="text-atelier-gold font-serif">Ponto</span></h1>
+            </div>
+            <nav class="mt-6">
+                <button onclick="switchTab('dashboard')" id="btn-dashboard" class="sidebar-item active-tab w-full flex items-center p-4 transition font-semibold">
+                    <i class="fas fa-home mr-3 w-5"></i> Visão Geral
+                </button>
+                <button onclick="switchTab('pedidos')" id="btn-pedidos" class="sidebar-item w-full flex items-center p-4 transition font-semibold">
+                    <i class="fas fa-tasks mr-3 w-5"></i> Gestão de Pedidos
+                </button>
+                <button onclick="switchTab('calendario')" id="btn-calendario" class="sidebar-item w-full flex items-center p-4 transition font-semibold">
+                    <i class="fas fa-calendar-check mr-3 w-5"></i> Agenda & Bloqueios
+                </button>
+                <button onclick="switchTab('config')" id="btn-config" class="sidebar-item w-full flex items-center p-4 transition font-semibold">
+                    <i class="fas fa-cog mr-3 w-5"></i> Configurações
+                </button>
+                <div class="absolute bottom-0 w-64 p-6 border-t border-gray-50">
+                    <button onclick="handleLogout()" class="text-gray-400 hover:text-red-500 text-xs font-black uppercase flex items-center gap-2 transition">
+                        <i class="fas fa-sign-out-alt"></i> Sair do Sistema
+                    </button>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6 md:p-10">
+            <header class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 id="tab-title" class="text-3xl font-bold text-gray-800 tracking-tight">Resumo Geral</h2>
+                    <p class="text-sm text-gray-500">Gestão centralizada do Ateliê Ponto a Ponto.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="text-right hidden sm:block">
+                        <p id="admin-display-name" class="text-sm font-bold">Admin</p>
+                        <p id="status-tag" class="text-[10px] text-green-500 font-black uppercase tracking-widest italic">Sessão Ativa</p>
+                    </div>
+                    <div class="w-12 h-12 bg-atelier-gold/10 rounded-full flex items-center justify-center text-atelier-gold border border-atelier-gold/20">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard -->
+            <section id="content-dashboard" class="tab-content active">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border-b-4 border-orange-400">
+                        <p class="text-gray-400 text-[10px] font-black uppercase">Pendentes</p>
+                        <p id="dash-pendentes" class="text-4xl font-bold mt-2 italic text-atelier-dark">0</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border-b-4 border-blue-400">
+                        <p class="text-gray-400 text-[10px] font-black uppercase">Em Produção</p>
+                        <p id="dash-andamento" class="text-4xl font-bold mt-2 italic text-atelier-dark">0</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border-b-4 border-green-400">
+                        <p class="text-gray-400 text-[10px] font-black uppercase">Finalizados</p>
+                        <p id="dash-finalizados" class="text-4xl font-bold mt-2 italic text-atelier-dark">0</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border-b-4 border-red-400">
+                        <p class="text-gray-400 text-[10px] font-black uppercase">Datas Bloqueadas</p>
+                        <p id="dash-bloqueadas" class="text-4xl font-bold mt-2 italic text-red-400">0</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="font-bold text-lg mb-6 flex items-center gap-2">
+                        <i class="fas fa-bell text-atelier-gold"></i> Logs de Atividade
+                    </h3>
+                    <div id="alertas-agenda" class="text-sm text-gray-400 italic py-4 text-center border-2 border-dashed border-gray-50 rounded-xl">
+                        Aguardando dados reais do sistema...
+                    </div>
+                </div>
+            </section>
+
+            <!-- Gestão de Pedidos -->
+            <section id="content-pedidos" class="tab-content">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-6 border-b flex justify-between items-center bg-gray-50/50">
+                        <h3 class="font-bold text-gray-700">Fila de Atendimento</h3>
+                        <span class="text-[10px] font-black bg-orange-100 text-orange-600 px-3 py-1 rounded-full uppercase">Aprovação Bloqueia Data Automaticamente</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 text-[10px] uppercase font-black text-gray-400 border-b">
+                                <tr>
+                                    <th class="p-5">Cliente / Data Entrega</th>
+                                    <th class="p-5">Serviço Solicitado</th>
+                                    <th class="p-5">Status</th>
+                                    <th class="p-5 text-right">Controle</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-pedidos-body">
+                                <tr id="pedidos-placeholder">
+                                    <td colspan="4" class="p-20 text-center opacity-20 italic">
+                                        <i class="fas fa-inbox text-4xl mb-2"></i><br>
+                                        Nenhum pedido recebido.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Agenda & Bloqueios -->
+            <section id="content-calendario" class="tab-content">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                        <h3 class="font-bold text-xl mb-6 italic">Bloqueio Manual de Data</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2">Data Indisponível</label>
+                                <input type="date" id="block-date" class="w-full p-4 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-atelier-gold font-bold">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2">Motivo do Fechamento</label>
+                                <input type="text" id="block-reason" placeholder="Ex: Feriado, Viagem ou Lotado" class="w-full p-4 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-atelier-gold font-bold">
+                            </div>
+                            <button onclick="addManualBlock()" class="w-full bg-atelier-dark text-white font-black py-4 rounded-xl hover:bg-atelier-gold transition shadow-lg shadow-gray-200 uppercase tracking-widest text-xs">
+                                Confirmar Bloqueio
+                            </button>
+                        </div>
+                    </div>
+                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                        <h4 class="font-bold text-xs text-gray-400 uppercase mb-6 flex justify-between">
+                            <span>Datas com Entrega Suspensa</span>
+                            <span id="badge-total-bloqueios" class="bg-red-50 text-red-500 px-2 rounded">0</span>
+                        </h4>
+                        <ul id="blocked-list" class="space-y-3">
+                            <li class="text-center py-10 opacity-20 italic text-sm">Nenhum dia bloqueado.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Configurações -->
+            <section id="content-config" class="tab-content">
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 max-w-2xl">
+                    <h3 class="font-bold text-xl mb-6 italic">Definições do Sistema</h3>
+                    <div class="space-y-6">
+                        <div class="p-4 bg-blue-50 border border-blue-100 rounded-xl text-blue-700 text-xs font-bold uppercase leading-relaxed">
+                            <i class="fas fa-info-circle mr-2"></i> Aqui você poderá configurar horários de funcionamento e dados de contato que aparecem no site do cliente.
+                        </div>
+                        <p class="text-gray-400 italic text-center py-10">Módulo de configurações em desenvolvimento...</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Configuração de Acesso
+        const ADMIN_CONFIRM_CODE = "pontoa";
+        
+        // Memória local
+        let pedidos = [];
+        let datasBloqueadas = [];
+
+        // Função de Login
+        function handleLogin() {
+            const email = document.getElementById('login-email').value;
+            const code = document.getElementById('login-code').value;
+            const errorMsg = document.getElementById('login-error');
+
+            if (email.includes('@') && code === ADMIN_CONFIRM_CODE) {
+                // Salva sessão localmente
+                localStorage.setItem('atelier_admin_logged', 'true');
+                localStorage.setItem('atelier_admin_email', email);
+                
+                showApp();
+            } else {
+                errorMsg.classList.remove('hidden');
+                document.getElementById('login-code').value = "";
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('atelier_admin_logged');
+            location.reload();
+        }
+
+        function showApp() {
+            document.getElementById('login-overlay').style.display = 'none';
+            const app = document.getElementById('app-content');
+            app.classList.remove('opacity-0');
+            
+            const email = localStorage.getItem('atelier_admin_email');
+            document.getElementById('admin-display-name').innerText = email.split('@')[0];
+            
+            atualizarDash();
+            atualizarInterfacePedidos();
+            atualizarInterfaceAgenda();
+        }
+
+        // Navegação
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active-tab'));
+            
+            const content = document.getElementById('content-' + tabId);
+            const btn = document.getElementById('btn-' + tabId);
+            
+            if(content && btn) {
+                content.classList.add('active');
+                btn.classList.add('active-tab');
+                document.getElementById('tab-title').innerText = btn.innerText.trim();
+            }
+        }
+
+        // Fluxo de Pedidos
+        function aprovarPedido(id) {
+            const pedido = pedidos.find(p => p.id === id);
+            if (!pedido) return;
+            pedido.status = 'andamento';
+            if (!datasBloqueadas.includes(pedido.data)) {
+                datasBloqueadas.push(pedido.data);
+                atualizarInterfaceAgenda();
+            }
+            atualizarInterfacePedidos();
+            atualizarDash();
+        }
+
+        function finalizarPedido(id) {
+            const pedido = pedidos.find(p => p.id === id);
+            if (pedido) {
+                pedido.status = 'finalizado';
+                atualizarInterfacePedidos();
+                atualizarDash();
+            }
+        }
+
+        function addManualBlock() {
+            const date = document.getElementById('block-date').value;
+            if(!date) return alert("Selecione uma data.");
+            if(!datasBloqueadas.includes(date)) {
+                datasBloqueadas.push(date);
+                atualizarInterfaceAgenda();
+                document.getElementById('block-date').value = "";
+                atualizarDash();
+            }
+        }
+
+        function atualizarInterfacePedidos() {
+            const container = document.getElementById('lista-pedidos-body');
+            if (pedidos.length === 0) {
+                container.innerHTML = `<tr id="pedidos-placeholder"><td colspan="4" class="p-20 text-center opacity-20 italic">Nenhum pedido na fila.</td></tr>`;
+                return;
+            }
+            container.innerHTML = pedidos.map(p => `
+                <tr class="border-b hover:bg-gray-50/50 transition">
+                    <td class="p-5">
+                        <p class="font-bold text-gray-800">${p.cliente}</p>
+                        <p class="text-[10px] text-gray-400 font-black uppercase tracking-tighter italic">${p.data}</p>
+                    </td>
+                    <td class="p-5 text-sm font-medium">${p.servico}</td>
+                    <td class="p-5">
+                        <span class="status-badge ${p.status === 'pendente' ? 'bg-orange-100 text-orange-600' : p.status === 'andamento' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'}">
+                            ${p.status}
+                        </span>
+                    </td>
+                    <td class="p-5 text-right space-x-1">
+                        ${p.status === 'pendente' ? `<button onclick="aprovarPedido(${p.id})" class="text-[10px] font-black bg-green-500 text-white px-3 py-1.5 rounded-lg hover:bg-green-600 transition uppercase">Aprovar</button>` : ''}
+                        ${p.status === 'andamento' ? `<button onclick="finalizarPedido(${p.id})" class="text-[10px] font-black bg-gray-800 text-white px-3 py-1.5 rounded-lg hover:bg-black transition uppercase">Finalizar</button>` : ''}
+                        <button onclick="excluirPedido(${p.id})" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash-alt"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function atualizarInterfaceAgenda() {
+            const list = document.getElementById('blocked-list');
+            if (datasBloqueadas.length === 0) {
+                list.innerHTML = `<li class="text-center py-10 opacity-20 italic text-sm">Nenhum dia bloqueado.</li>`;
+                return;
+            }
+            list.innerHTML = datasBloqueadas.map(d => `
+                <li class="flex justify-between items-center bg-red-50/50 p-4 rounded-xl border border-red-100 group">
+                    <span class="text-sm font-bold text-red-700 italic"><i class="fas fa-calendar-times mr-2 opacity-50"></i>${d}</span>
+                    <button onclick="removerBloqueio('${d}')" class="text-red-200 hover:text-red-600 transition p-1"><i class="fas fa-times-circle"></i></button>
+                </li>
+            `).join('');
+            const badge = document.getElementById('badge-total-bloqueios');
+            if(badge) badge.innerText = datasBloqueadas.length;
+        }
+
+        function removerBloqueio(data) {
+            datasBloqueadas = datasBloqueadas.filter(d => d !== data);
+            atualizarInterfaceAgenda();
+            atualizarDash();
+        }
+
+        function excluirPedido(id) {
+            if(!confirm("Remover este pedido?")) return;
+            pedidos = pedidos.filter(p => p.id !== id);
+            atualizarInterfacePedidos();
+            atualizarDash();
+        }
+
+        function atualizarDash() {
+            const elP = document.getElementById('dash-pendentes');
+            const elA = document.getElementById('dash-andamento');
+            const elF = document.getElementById('dash-finalizados');
+            const elB = document.getElementById('dash-bloqueadas');
+            if(elP) elP.innerText = pedidos.filter(p => p.status === 'pendente').length;
+            if(elA) elA.innerText = pedidos.filter(p => p.status === 'andamento').length;
+            if(elF) elF.innerText = pedidos.filter(p => p.status === 'finalizado').length;
+            if(elB) elB.innerText = datasBloqueadas.length;
+        }
+
+        // Verificar sessão ao carregar
+        window.onload = () => {
+            if (localStorage.getItem('atelier_admin_logged') === 'true') {
+                showApp();
+            }
+        };
+    </script>
+</body>
+</html>
