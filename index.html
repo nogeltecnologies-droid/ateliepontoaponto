@@ -4,311 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ateliê Ponto a Ponto</title>
-    
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-    
-    <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: {
-                        'atelier-gold': '#D4AF37',
-                        'atelier-dark': '#1a1a1a',
-                        'atelier-cream': '#f9f7f2',
-                        'atelier-pink': '#f3e5e5',
-                    },
-                    fontFamily: {
-                        'script': ['"Great Vibes"', 'cursive'],
-                        'serif': ['"Playfair Display"', 'serif'],
-                        'sans': ['"Montserrat"', 'sans-serif'],
-                    }
+                    colors: { 'atelier-gold': '#D4AF37', 'atelier-dark': '#1a1a1a', 'atelier-cream': '#f9f7f2', 'atelier-pink': '#f3e5e5' },
+                    fontFamily: { 'script': ['"Great Vibes"'], 'serif': ['"Playfair Display"'], 'sans': ['"Montserrat"'] }
                 }
             }
         }
     </script>
-
-    <style>
-        .hero-bg {
-            background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1528659586119-0937a008c279?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-        }
-        
-        .gold-underline {
-            position: relative;
-            display: inline-block;
-        }
-        
-        .gold-underline::after {
-            content: '';
-            position: absolute;
-            width: 60%;
-            height: 2px;
-            bottom: -5px;
-            left: 20%;
-            background-color: #D4AF37;
-        }
-
-        .checkbox-custom:checked {
-            background-color: #D4AF37;
-            border-color: #D4AF37;
-        }
-    </style>
 </head>
-<body class="bg-atelier-cream font-sans text-atelier-dark antialiased">
+<body class="bg-atelier-cream font-sans text-atelier-dark">
 
-    <!-- Navbar -->
-    <nav class="bg-white shadow-md fixed w-full z-50 transition-all duration-300">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-20">
-                <div class="flex-shrink-0 flex items-center">
-                    <span class="font-script text-3xl text-atelier-dark">Ponto a Ponto</span>
-                </div>
-                <div class="hidden md:block">
-                    <div class="ml-10 flex items-baseline space-x-8">
-                        <a href="#inicio" class="hover:text-atelier-gold px-3 py-2 rounded-md text-sm font-medium transition">Início</a>
-                        <a href="#servicos" class="hover:text-atelier-gold px-3 py-2 rounded-md text-sm font-medium transition">Serviços</a>
-                        <a href="#pedido" class="bg-atelier-dark text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-atelier-gold transition shadow-lg">Fazer Pedido</a>
-                    </div>
-                </div>
-                <!-- Mobile menu button -->
-                <div class="-mr-2 flex md:hidden">
-                    <button type="button" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')" class="inline-flex items-center justify-center p-2 rounded-md text-gray-800 hover:text-atelier-gold focus:outline-none">
-                        <i class="fas fa-bars text-xl"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-        <!-- Mobile Menu -->
-        <div class="hidden md:hidden bg-white border-t" id="mobile-menu">
-            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                <a href="#inicio" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-atelier-pink">Início</a>
-                <a href="#servicos" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-atelier-pink">Serviços</a>
-                <a href="#pedido" class="block px-3 py-2 rounded-md text-base font-medium text-atelier-gold font-bold">Fazer Pedido</a>
-            </div>
-        </div>
+    <nav class="bg-white shadow-md fixed w-full z-50 h-20 flex justify-between items-center px-8">
+        <span class="font-script text-3xl">Ponto a Ponto</span>
+        <a href="#pedido" class="bg-atelier-dark text-white px-5 py-2 rounded-full text-sm">Fazer Pedido</a>
     </nav>
 
-    <!-- Hero Section -->
-    <header id="inicio" class="hero-bg h-screen flex flex-col justify-center items-center text-center px-4">
-        <h1 class="font-serif text-5xl md:text-7xl text-white mb-4 animate-fade-in-up">
-            <span class="font-script text-atelier-gold block text-6xl md:text-8xl mb-2">Ateliê</span>
-            PONTO A PONTO
-        </h1>
-        <div class="w-24 h-1 bg-atelier-gold mb-8 rounded-full"></div>
-        <p class="text-white text-lg md:text-2xl font-light tracking-widest uppercase mb-12 max-w-2xl mx-auto">
-            "AONDE SUAS ROUPAS RESPEITAM SEU CORPO"
-        </p>
-        <a href="#pedido" class="bg-atelier-gold text-white px-8 py-4 rounded-none border border-atelier-gold hover:bg-transparent hover:text-atelier-gold transition duration-300 font-serif tracking-wider uppercase text-sm">
-            Agendar Serviço
-        </a>
-    </header>
-
-    <!-- Services Section -->
-    <section id="servicos" class="py-20 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
-                <h2 class="text-3xl md:text-4xl font-serif font-bold text-atelier-dark mb-4">Nossos Serviços</h2>
-                <div class="w-16 h-1 bg-atelier-gold mx-auto"></div>
-                <p class="mt-4 text-gray-600 max-w-2xl mx-auto">Excelência em cada detalhe, do ajuste simples à criação complexa.</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
-                <!-- Service 1 -->
-                <div class="group bg-atelier-cream p-8 rounded-xl shadow-sm hover:shadow-xl transition duration-300 border border-transparent hover:border-atelier-gold text-center">
-                    <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-6 text-atelier-gold text-2xl shadow-md group-hover:bg-atelier-gold group-hover:text-white transition">
-                        <i class="fas fa-ruler-combined"></i>
-                    </div>
-                    <h3 class="text-xl font-serif font-bold mb-3">Ajustes</h3>
-                    <p class="text-gray-600 text-sm leading-relaxed">
-                        Ajustamos as suas peças favoritas para que caiam perfeitamente. Redução, expansão e correções de silhueta com precisão.
-                    </p>
-                </div>
-
-                <!-- Service 2 -->
-                <div class="group bg-atelier-cream p-8 rounded-xl shadow-sm hover:shadow-xl transition duration-300 border border-transparent hover:border-atelier-gold text-center">
-                    <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-6 text-atelier-gold text-2xl shadow-md group-hover:bg-atelier-gold group-hover:text-white transition">
-                        <i class="fas fa-scissors"></i>
-                    </div>
-                    <h3 class="text-xl font-serif font-bold mb-3">Barra</h3>
-                    <p class="text-gray-600 text-sm leading-relaxed">
-                        Barra original, italiana, lenço ou simples. Mantemos a originalidade da peça com acabamentos impecáveis.
-                    </p>
-                </div>
-
-                <!-- Service 3 -->
-                <div class="group bg-atelier-cream p-8 rounded-xl shadow-sm hover:shadow-xl transition duration-300 border border-transparent hover:border-atelier-gold text-center">
-                    <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-6 text-atelier-gold text-2xl shadow-md group-hover:bg-atelier-gold group-hover:text-white transition">
-                        <i class="fas fa-pencil-ruler"></i>
-                    </div>
-                    <h3 class="text-xl font-serif font-bold mb-3">Modelagem Completa</h3>
-                    <p class="text-gray-600 text-sm leading-relaxed">
-                        Criação exclusiva sob medida. Transformamos as suas ideias e tecidos em peças únicas que valorizam o seu corpo.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Order Form Section -->
-    <section id="pedido" class="py-20 bg-atelier-pink relative">
-        <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none" style="background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23000000\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');"></div>
-        
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 relative z-10">
+    <section id="pedido" class="pt-32 pb-20 bg-atelier-pink">
+        <div class="max-w-4xl mx-auto px-4">
             <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
-                <div class="bg-atelier-dark py-6 text-center">
-                    <h2 class="text-2xl md:text-3xl font-serif text-white">Faça o seu Pedido</h2>
-                    <p class="text-gray-400 text-sm mt-1">Envie os detalhes direto para o nosso WhatsApp</p>
+                <div class="bg-atelier-dark py-6 text-center text-white">
+                    <h2 class="text-2xl font-serif">Agende seu Serviço</h2>
                 </div>
                 
-                <form id="orderForm" class="p-8 md:p-12 space-y-6" onsubmit="sendToWhatsApp(event)">
-                    
-                    <!-- Nome e Endereço -->
+                <form id="orderForm" class="p-8 space-y-6" onsubmit="sendToWhatsApp(event)">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <input type="text" id="nome" placeholder="Nome Completo" required class="p-3 border rounded-lg outline-none focus:border-atelier-gold">
+                        <input type="text" id="endereco" placeholder="Endereço" required class="p-3 border rounded-lg outline-none focus:border-atelier-gold">
+                        <input type="text" id="peca" placeholder="Tipo da Peça" required class="p-3 border rounded-lg outline-none focus:border-atelier-gold">
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2" for="nome">Nome Completo</label>
-                            <input type="text" id="nome" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-atelier-gold focus:ring-1 focus:ring-atelier-gold transition" placeholder="O seu nome">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2" for="endereco">Endereço</label>
-                            <input type="text" id="endereco" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-atelier-gold focus:ring-1 focus:ring-atelier-gold transition" placeholder="Rua, número, bairro">
-                        </div>
-                    </div>
-
-                    <!-- Peça e Prazo -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2" for="peca">Tipo da Peça</label>
-                            <input type="text" id="peca" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-atelier-gold focus:ring-1 focus:ring-atelier-gold transition" placeholder="Ex: Vestido, Calças Jeans, Blazer">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2" for="prazo">Prazo Desejado</label>
-                            <div class="flex gap-2">
-                                <input type="date" id="prazo" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-atelier-gold focus:ring-1 focus:ring-atelier-gold transition">
-                            </div>
-                            <div class="mt-2 flex items-center">
-                                <input type="checkbox" id="urgencia" class="w-4 h-4 text-atelier-gold border-gray-300 rounded focus:ring-atelier-gold">
-                                <label for="urgencia" class="ml-2 text-sm text-red-600 font-bold">É urgente?</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Serviços (Checkboxes) -->
-                    <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-3">Selecione os Serviços:</label>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition">
-                                <input type="checkbox" name="servicos" value="Ajustes" class="w-5 h-5 text-atelier-gold border-gray-300 rounded focus:ring-atelier-gold">
-                                <span class="ml-2 text-gray-700">Ajustes</span>
-                            </label>
-                            <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition">
-                                <input type="checkbox" name="servicos" value="Barra" class="w-5 h-5 text-atelier-gold border-gray-300 rounded focus:ring-atelier-gold">
-                                <span class="ml-2 text-gray-700">Barra</span>
-                            </label>
-                            <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition">
-                                <input type="checkbox" name="servicos" value="Modelagem Completa" class="w-5 h-5 text-atelier-gold border-gray-300 rounded focus:ring-atelier-gold">
-                                <span class="ml-2 text-gray-700">Modelagem Completa</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Observações -->
-                    <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-2" for="obs">Observações</label>
-                        <textarea id="obs" rows="3" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-atelier-gold focus:ring-1 focus:ring-atelier-gold transition" placeholder="Detalhes específicos sobre o ajuste, medidas, etc."></textarea>
-                    </div>
-
-                    <!-- Botão Enviar -->
-                    <button type="submit" class="w-full bg-green-600 text-white font-bold py-4 rounded-lg hover:bg-green-700 transition duration-300 flex items-center justify-center gap-2 shadow-lg transform hover:-translate-y-1">
-                        <i class="fab fa-whatsapp text-2xl"></i>
-                        <span>Enviar Pedido pelo WhatsApp</span>
-                    </button>
-                    
-                    <p class="text-xs text-center text-gray-500 mt-4">Ao clicar, será redirecionado para o WhatsApp com a mensagem preenchida.</p>
-                </form>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="bg-atelier-dark text-white py-10 border-t border-gray-800">
-        <div class="max-w-7xl mx-auto px-4 text-center">
-            <h2 class="font-script text-4xl mb-4 text-atelier-gold">Ponto a Ponto</h2>
-            <p class="uppercase tracking-widest text-xs mb-6">Aonde suas roupas respeitam seu corpo</p>
-            
-            <div class="flex justify-center space-x-6 mb-8">
-                <a href="https://www.instagram.com/ateliepontoaponto.6173033" target="_blank" class="text-gray-400 hover:text-white transition"><i class="fab fa-instagram text-2xl"></i></a>
-                <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-facebook text-2xl"></i></a>
-                <a href="https://wa.me/559884490648" target="_blank" class="text-gray-400 hover:text-white transition"><i class="fab fa-whatsapp text-2xl"></i></a>
-            </div>
-            
-            <p class="text-gray-600 text-sm">&copy; 2025 Ateliê Ponto a Ponto. Todos os direitos reservados.</p>
-        </div>
-    </footer>
-
-    <!-- JavaScript Script -->
-    <script>
-        function sendToWhatsApp(event) {
-            event.preventDefault(); // Impede o recarregamento da página
-
-            // Número do WhatsApp Business do Ateliê
-            const whatsappNumber = "559884490648"; 
-
-            // Coleta de dados
-            const nome = document.getElementById('nome').value;
-            const endereco = document.getElementById('endereco').value;
-            const peca = document.getElementById('peca').value;
-            const prazoData = document.getElementById('prazo').value;
-            
-            // Formatando data
-            const dataObj = new Date(prazoData);
-            const dataFormatada = dataObj.toLocaleDateString('pt-BR');
-
-            const isUrgente = document.getElementById('urgencia').checked;
-            const obs = document.getElementById('obs').value;
-
-            // Coleta dos serviços selecionados
-            const servicosCheckboxes = document.querySelectorAll('input[name="servicos"]:checked');
-            let servicosSelecionados = [];
-            servicosCheckboxes.forEach((checkbox) => {
-                servicosSelecionados.push(checkbox.value);
-            });
-            const servicosString = servicosSelecionados.length > 0 ? servicosSelecionados.join(', ') : "Não especificado";
-
-            // Tratamento da Urgência - Corrigido o caractere '?' faltando na condição ternária
-            const textoUrgencia = isUrgente ? "🔴 SIM (URGENTE)" : "Normal";
-
-            // Construção da mensagem de texto puro com Emojis
-            let mensagemRaw = `*Olá, gostaria de fazer um pedido no Ateliê Ponto a Ponto!* 🧵✂️\n\n`;
-            mensagemRaw += `👤 *Nome:* ${nome}\n`;
-            mensagemRaw += `📍 *Endereço:* ${endereco}\n`;
-            mensagemRaw += `👗 *Peça:* ${peca}\n`;
-            mensagemRaw += `🛠 *Serviços:* ${servicosString}\n`;
-            mensagemRaw += `📅 *Prazo:* ${dataFormatada} (${textoUrgencia})\n`;
-            
-            if(obs) {
-                mensagemRaw += `📝 *Obs:* ${obs}\n`;
-            }
-
-            // Codificação correta para URL para evitar pontos de interrogação
-            const mensagemEncoded = encodeURIComponent(mensagemRaw);
-
-            // Criação do Link final
-            const url = `https://wa.me/${whatsappNumber}?text=${mensagemEncoded}`;
-
-            // Abrir em nova aba
-            window.open(url, '_blank');
-        }
-    </script>
-</body>
-</html>
+                            <input type="text" id="prazo" placeholder="Selecione a Data" required class="w-full p-3 border rounded-lg outline-none">
+                            <div class="mt-2 flex items-center text-red-600 font-bold italic">
+                                <input type="checkbox
