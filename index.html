@@ -1,45 +1,301 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ateliê Ponto a Ponto</title>
+    <title>Ateliê Ponto a Ponto | Alta Costura & Ajustes</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: { 'atelier-gold': '#D4AF37', 'atelier-dark': '#1a1a1a', 'atelier-cream': '#f9f7f2', 'atelier-pink': '#f3e5e5' },
-                    fontFamily: { 'script': ['"Great Vibes"'], 'serif': ['"Playfair Display"'], 'sans': ['"Montserrat"'] }
+                    colors: { 
+                        'atelier-gold': '#D4AF37', 
+                        'atelier-gold-dark': '#B8860B',
+                        'atelier-dark': '#1a1a1a', 
+                        'atelier-cream': '#fdfcfb', 
+                        'atelier-pink': '#fbf4f4' 
+                    },
+                    fontFamily: { 
+                        'script': ['"Great Vibes"'], 
+                        'serif': ['"Playfair Display"'], 
+                        'sans': ['"Montserrat"'] 
+                    }
                 }
             }
         }
     </script>
+    <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        .gold-gradient {
+            background: linear-gradient(135deg, #D4AF37 0%, #F1D37E 50%, #D4AF37 100%);
+        }
+        .floating { animation: floating 3s ease-in-out infinite; }
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .hero-banner {
+            background-color: #fdfcfb;
+            position: relative;
+        }
+        .text-shadow-elegant {
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
 </head>
-<body class="bg-atelier-cream font-sans text-atelier-dark">
+<body class="bg-atelier-cream font-sans text-atelier-dark overflow-x-hidden">
 
-    <nav class="bg-white shadow-md fixed w-full z-50 h-20 flex justify-between items-center px-8">
-        <span class="font-script text-3xl">Ponto a Ponto</span>
-        <a href="#pedido" class="bg-atelier-dark text-white px-5 py-2 rounded-full text-sm">Fazer Pedido</a>
+    <!-- Header / Navbar -->
+    <nav class="bg-white/80 backdrop-blur-md shadow-sm fixed w-full z-50 h-20 flex justify-between items-center px-6 md:px-12 transition-all">
+        <div class="flex items-center gap-2">
+            <span class="font-script text-4xl text-atelier-gold drop-shadow-sm">Ponto a Ponto</span>
+        </div>
+        <div class="hidden md:flex gap-8 text-sm font-semibold uppercase tracking-widest">
+            <a href="#inicio" class="hover:text-atelier-gold transition">Início</a>
+            <a href="#servicos" class="hover:text-atelier-gold transition">Serviços</a>
+            <a href="#pedido" class="hover:text-atelier-gold transition text-atelier-gold font-bold">Solicitar Orçamento</a>
+        </div>
+        <div class="flex items-center gap-4">
+            <a href="https://wa.me/559884490648" target="_blank" class="text-atelier-dark hover:text-atelier-gold text-xl transition">
+                <i class="fab fa-whatsapp"></i>
+            </a>
+            <a href="#pedido" class="gold-gradient text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-lg hover:scale-105 transition-transform">
+                AGENDAR
+            </a>
+        </div>
     </nav>
 
-    <section id="pedido" class="pt-32 pb-20 bg-atelier-pink">
-        <div class="max-w-4xl mx-auto px-4">
-            <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
-                <div class="bg-atelier-dark py-6 text-center text-white">
-                    <h2 class="text-2xl font-serif">Agende seu Serviço</h2>
+    <!-- Hero Section -->
+    <section id="inicio" class="hero-banner pt-48 pb-32 px-6 flex flex-col items-center justify-center text-center">
+        <div class="animate__animated animate__fadeInDown">
+            <span class="font-script text-5xl md:text-7xl text-white block mb-[-15px] text-shadow-elegant drop-shadow-lg" style="color: white !important; -webkit-text-stroke: 0.5px #D4AF37;">Ateliê</span>
+            <h1 class="font-serif text-5xl md:text-8xl font-bold text-white uppercase tracking-tighter text-shadow-elegant drop-shadow-lg" style="color: white !important; -webkit-text-stroke: 1px #D4AF37;">Ponto a Ponto</h1>
+        </div>
+        
+        <div class="mt-12 max-w-2xl animate__animated animate__fadeIn animate__delay-1s">
+            <span class="inline-block px-4 py-1 mb-6 border border-atelier-gold text-atelier-gold text-xs font-black uppercase tracking-[0.3em]">Exclusividade em cada detalhe</span>
+            <p class="text-gray-500 text-lg mb-10">Alta costura maranhense: transformamos tecidos em sonhos e peças em perfeição com ajuste manual.</p>
+            
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="#pedido" class="inline-block gold-gradient text-white px-10 py-4 rounded-full font-bold shadow-2xl hover:scale-105 transition-transform uppercase tracking-widest text-sm">
+                    Agendar Agora
+                </a>
+                <a href="https://wa.me/559884490648" target="_blank" class="inline-block border-2 border-atelier-gold text-atelier-gold px-10 py-4 rounded-full font-bold hover:bg-atelier-gold hover:text-white transition-all uppercase tracking-widest text-sm">
+                    Falar no WhatsApp
+                </a>
+            </div>
+        </div>
+
+        <div class="floating mt-16">
+            <i class="fas fa-chevron-down text-atelier-gold text-xl"></i>
+        </div>
+    </section>
+
+    <!-- Seção de Serviços -->
+    <section id="servicos" class="py-20 bg-white">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="font-serif text-4xl mb-4 text-atelier-dark">Nossas Especialidades</h2>
+                <p class="text-gray-400 uppercase tracking-widest text-xs font-bold">Tudo o que sua peça precisa</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+                <div class="p-8 border border-gray-50 rounded-3xl hover:shadow-xl transition-shadow bg-atelier-cream/30">
+                    <div class="w-16 h-16 gold-gradient text-white rounded-2xl flex items-center justify-center mx-auto mb-6 rotate-3 shadow-xl">
+                        <i class="fas fa-ruler-combined text-2xl"></i>
+                    </div>
+                    <h3 class="font-serif text-xl font-bold mb-3">Ajustes sob Medida</h3>
+                    <p class="text-gray-500 text-sm">Redimensionamento preciso para que a roupa vista seu corpo perfeitamente, valorizando suas curvas.</p>
+                </div>
+                <div class="p-8 border border-gray-50 rounded-3xl hover:shadow-xl transition-shadow bg-atelier-cream/30">
+                    <div class="w-16 h-16 gold-gradient text-white rounded-2xl flex items-center justify-center mx-auto mb-6 -rotate-3 shadow-xl">
+                        <i class="fas fa-pencil-alt text-2xl"></i>
+                    </div>
+                    <h3 class="font-serif text-xl font-bold mb-3">Modelagem Completa</h3>
+                    <p class="text-gray-500 text-sm">Criação de moldes exclusivos do zero para peças novas ou réplicas de suas roupas favoritas.</p>
+                </div>
+                <div class="p-8 border border-gray-50 rounded-3xl hover:shadow-xl transition-shadow bg-atelier-cream/30">
+                    <div class="w-16 h-16 gold-gradient text-white rounded-2xl flex items-center justify-center mx-auto mb-6 rotate-3 shadow-xl">
+                        <i class="fas fa-cut text-2xl"></i>
+                    </div>
+                    <h3 class="font-serif text-xl font-bold mb-3">Barras e Acabamentos</h3>
+                    <p class="text-gray-500 text-sm">Barras originais de jeans, barras invisíveis em vestidos de festa e acabamentos finos de alfaiataria.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Formulário de Pedido -->
+    <section id="pedido" class="py-20 bg-atelier-pink relative overflow-hidden">
+        <div class="absolute top-0 right-0 opacity-5 pointer-events-none translate-x-1/2 -translate-y-1/2">
+            <i class="fas fa-scissors text-[400px]"></i>
+        </div>
+
+        <div class="max-w-4xl mx-auto px-6 relative z-10">
+            <div class="glass-card rounded-3xl shadow-2xl overflow-hidden border border-white">
+                <div class="bg-atelier-dark py-10 text-center text-white">
+                    <h2 class="text-3xl font-serif">Solicitar Orçamento</h2>
+                    <p class="text-atelier-gold text-xs uppercase tracking-widest mt-2">Atendimento Especializado via WhatsApp</p>
+                    <div class="w-20 h-1 bg-atelier-gold mx-auto mt-4 rounded-full"></div>
                 </div>
                 
-                <form id="orderForm" class="p-8 space-y-6" onsubmit="sendToWhatsApp(event)">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <input type="text" id="nome" placeholder="Nome Completo" required class="p-3 border rounded-lg outline-none focus:border-atelier-gold">
-                        <input type="text" id="endereco" placeholder="Endereço" required class="p-3 border rounded-lg outline-none focus:border-atelier-gold">
-                        <input type="text" id="peca" placeholder="Tipo da Peça" required class="p-3 border rounded-lg outline-none focus:border-atelier-gold">
-                        <div>
-                            <input type="text" id="prazo" placeholder="Selecione a Data" required class="w-full p-3 border rounded-lg outline-none">
-                            <div class="mt-2 flex items-center text-red-600 font-bold italic">
-                                <input type="checkbox
+                <form id="orderForm" class="p-8 md:p-12 space-y-6" onsubmit="sendToWhatsApp(event)">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-atelier-gold">Seu Nome</label>
+                            <input type="text" id="nome" placeholder="Ex: Maria Oliveira" required class="w-full p-4 bg-gray-50 border-b-2 border-transparent focus:border-atelier-gold outline-none transition rounded-t-lg">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-atelier-gold">Seu Endereço</label>
+                            <input type="text" id="endereco" placeholder="Rua, Número e Bairro" required class="w-full p-4 bg-gray-50 border-b-2 border-transparent focus:border-atelier-gold outline-none transition rounded-t-lg">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-atelier-gold">Serviço Desejado</label>
+                            <select id="peca" required class="w-full p-4 bg-gray-50 border-b-2 border-transparent focus:border-atelier-gold outline-none transition rounded-t-lg">
+                                <option value="">Selecione...</option>
+                                <option value="Ajuste sob Medida">Ajuste sob Medida</option>
+                                <option value="Modelagem Completa">Modelagem Completa</option>
+                                <option value="Barras">Barras e Acabamentos</option>
+                                <option value="Outros">Outros</option>
+                            </select>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-atelier-gold">Data Pretendida</label>
+                            <input type="text" id="prazo" placeholder="Selecione no calendário" required class="w-full p-4 bg-gray-50 border-b-2 border-transparent focus:border-atelier-gold outline-none transition rounded-t-lg">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 p-4 bg-red-50/50 rounded-xl border border-red-100">
+                        <input type="checkbox" id="urgencia" class="w-5 h-5 accent-red-600">
+                        <label for="urgencia" class="text-xs font-bold text-red-600 uppercase tracking-widest cursor-pointer">⚠️ Necessito de Entrega Urgente</label>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-atelier-gold">Observações da Peça</label>
+                        <textarea id="obs" rows="3" placeholder="Ex: Ajustar cintura de vestido de seda..." class="w-full p-4 bg-gray-50 border-b-2 border-transparent focus:border-atelier-gold outline-none transition rounded-t-lg"></textarea>
+                    </div>
+
+                    <button type="submit" id="btnSubmit" class="w-full bg-atelier-dark text-white font-black py-5 rounded-2xl hover:bg-atelier-gold-dark transition-all transform hover:-translate-y-1 shadow-xl flex justify-center items-center gap-3 uppercase tracking-[0.2em] text-xs">
+                        <i class="fab fa-whatsapp text-xl"></i> Enviar Pedido via WhatsApp
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-white py-12 px-6 border-t border-gray-100">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8 text-center md:text-left">
+            <div>
+                <span class="font-script text-3xl text-atelier-gold">Ponto a Ponto</span>
+                <p class="text-xs text-gray-400 mt-2 uppercase tracking-widest font-bold">Alta Costura & Ajustes Profissionais</p>
+                <p class="text-sm text-gray-500 mt-4"><i class="fas fa-map-marker-alt text-atelier-gold mr-2"></i> São Luís, Maranhão</p>
+            </div>
+            
+            <div class="flex flex-col gap-3 items-center md:items-start">
+                <p class="text-[10px] font-black text-atelier-gold uppercase tracking-[0.2em]">Siga-nos</p>
+                <div class="flex gap-6 text-2xl text-atelier-dark">
+                    <a href="https://www.instagram.com/ateliepontoaponto.6173033" target="_blank" class="hover:text-atelier-gold transition"><i class="fab fa-instagram"></i></a>
+                    <a href="https://wa.me/559884490648" target="_blank" class="hover:text-atelier-gold transition"><i class="fab fa-whatsapp"></i></a>
+                </div>
+            </div>
+
+            <div class="text-center md:text-right">
+                <p class="text-[10px] text-gray-400 uppercase tracking-tighter mb-2">© 2026 Ateliê Ponto a Ponto.</p>
+                <p class="text-[10px] text-gray-300 uppercase tracking-tighter">Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Firebase e Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAg6XBoOZLuN847qL_5Yfy_mhVvsmgjXj4",
+            authDomain: "ateliepontoaponto-2a387.firebaseapp.com",
+            projectId: "ateliepontoaponto-2a387",
+            storageBucket: "ateliepontoaponto-2a387.firebasestorage.app",
+            messagingSenderId: "219962438132",
+            appId: "1:219962438132:web:b15c200ae2a2183e4d89a1"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        async function carregarAgenda() {
+            try {
+                const snapshot = await db.collection("bloqueios").get();
+                const datasBloqueadas = snapshot.docs.map(doc => doc.data().data);
+                
+                flatpickr("#prazo", { 
+                    disable: datasBloqueadas, 
+                    dateFormat: "Y-m-d", 
+                    altInput: true, 
+                    altFormat: "d/m/Y", 
+                    minDate: "today",
+                    locale: "pt",
+                    disableMobile: "true"
+                });
+            } catch (error) {
+                console.error("Erro ao carregar agenda:", error);
+            }
+        }
+        carregarAgenda();
+
+        async function sendToWhatsApp(event) {
+            event.preventDefault();
+            const btn = document.getElementById('btnSubmit');
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = `<i class="fas fa-circle-notch animate-spin text-xl"></i> PROCESSANDO...`;
+            btn.disabled = true;
+
+            const dados = {
+                nome: document.getElementById('nome').value,
+                endereco: document.getElementById('endereco').value,
+                peca: document.getElementById('peca').value,
+                prazo: document.getElementById('prazo').value,
+                obs: document.getElementById('obs').value,
+                urgente: document.getElementById('urgencia').checked,
+                status: "pendente",
+                dataCriacao: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                await db.collection("pedidos").add(dados);
+                const emojiUrgente = dados.urgente ? "🚨 SIM" : "Não";
+                const msg = `*NOVO PEDIDO DE AJUSTE* 🧵\n\n` +
+                            `👤 *Cliente:* ${dados.nome}\n` +
+                            `🏠 *Endereço:* ${dados.endereco}\n` +
+                            `👗 *Serviço:* ${dados.peca}\n` +
+                            `📅 *Pretende p/:* ${dados.prazo}\n` +
+                            `⚠️ *Urgente:* ${emojiUrgente}\n` +
+                            `📝 *Obs:* ${dados.obs || 'Nenhuma'}\n\n` +
+                            `_Enviado pelo site do Ateliê_`;
+
+                // Link oficial com o número correto informado pelo usuário
+                const whatsappUrl = `https://wa.me/559884490648?text=${encodeURIComponent(msg)}`;
+                window.open(whatsappUrl, '_blank');
+                document.getElementById('orderForm').reset();
+            } catch (error) {
+                alert("Ocorreu um erro ao salvar seu pedido. Tente novamente.");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
