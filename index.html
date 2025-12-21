@@ -7,7 +7,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
     <script>
         tailwind.config = {
             theme: {
@@ -31,157 +33,208 @@
     <style>
         .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
         .gold-gradient { background: linear-gradient(135deg, #D4AF37 0%, #F1D37E 50%, #D4AF37 100%); }
+        .hero-banner { background-color: #fdfcfb; position: relative; }
+        .text-shadow-elegant { text-shadow: 2px 2px 4px rgba(0,0,0,0.1); }
+        .service-card:hover { transform: translateY(-5px); border-color: #D4AF37; }
     </style>
 </head>
 <body class="bg-atelier-cream font-sans text-atelier-dark overflow-x-hidden">
 
+    <!-- Navbar -->
     <nav class="bg-white/80 backdrop-blur-md shadow-sm fixed w-full z-50 h-20 flex justify-between items-center px-6 md:px-12 transition-all">
         <div class="flex items-center gap-2">
             <span class="font-script text-4xl text-atelier-gold drop-shadow-sm">Ponto a Ponto</span>
         </div>
-        <div class="flex items-center gap-4">
+        
+        <div class="flex items-center gap-4 md:gap-8">
+            <div class="hidden md:flex gap-8 text-sm font-semibold uppercase tracking-widest text-atelier-dark mr-4">
+                <a href="#inicio" class="hover:text-atelier-gold transition">Início</a>
+                <a href="#servicos" class="hover:text-atelier-gold transition">Serviços</a>
+            </div>
             <a href="#pedido" class="gold-gradient text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-lg hover:scale-105 transition-transform">
                 AGENDAR
             </a>
         </div>
     </nav>
 
-    <!-- Hero -->
-    <section id="inicio" class="pt-48 pb-24 px-6 text-center">
-        <h1 class="font-serif text-5xl md:text-7xl font-bold text-atelier-dark uppercase tracking-tighter">Ateliê Ponto a Ponto</h1>
-        <p class="text-gray-500 text-lg mt-6 max-w-2xl mx-auto">Exclusividade e perfeição em cada ajuste. Alta costura feita à mão em São Luís.</p>
+    <!-- Hero Section -->
+    <section id="inicio" class="hero-banner pt-48 pb-20 px-6 flex flex-col items-center justify-center text-center">
+        <div class="animate__animated animate__fadeInDown">
+            <span class="font-script text-5xl md:text-7xl text-white block mb-[-15px] text-shadow-elegant drop-shadow-lg" style="color: white !important; -webkit-text-stroke: 0.5px #D4AF37;">Ateliê</span>
+            <h1 class="font-serif text-5xl md:text-8xl font-bold text-white uppercase tracking-tighter text-shadow-elegant drop-shadow-lg" style="color: white !important; -webkit-text-stroke: 1px #D4AF37;">Ponto a Ponto</h1>
+        </div>
+        
+        <div class="mt-8 max-w-2xl animate__animated animate__fadeIn animate__delay-1s">
+            <span class="inline-block px-4 py-1 mb-6 border border-atelier-gold text-atelier-gold text-xs font-black uppercase tracking-[0.3em]">Exclusividade em cada detalhe</span>
+            <p class="text-gray-500 text-lg">Alta costura maranhense com precisão artesanal e atendimento personalizado.</p>
+        </div>
     </section>
 
-    <!-- Formulário -->
-    <section id="pedido" class="py-20 bg-atelier-pink">
-        <div class="max-w-4xl mx-auto px-6">
+    <!-- Seção de Serviços -->
+    <section id="servicos" class="py-16 bg-white border-y border-gray-100">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
+                <div class="service-card p-6 border-2 border-transparent bg-atelier-pink rounded-3xl text-center transition-all">
+                    <i class="fas fa-cut text-atelier-gold text-2xl mb-4"></i>
+                    <h3 class="font-serif font-bold text-sm uppercase tracking-wider">Modelagem Completa</h3>
+                </div>
+                <div class="service-card p-6 border-2 border-transparent bg-atelier-pink rounded-3xl text-center transition-all">
+                    <i class="fas fa-compress-alt text-atelier-gold text-2xl mb-4"></i>
+                    <h3 class="font-serif font-bold text-sm uppercase tracking-wider">Ajustes</h3>
+                </div>
+                <div class="service-card p-6 border-2 border-transparent bg-atelier-pink rounded-3xl text-center transition-all">
+                    <i class="fas fa-magic text-atelier-gold text-2xl mb-4"></i>
+                    <h3 class="font-serif font-bold text-sm uppercase tracking-wider">Personalização</h3>
+                </div>
+                <div class="service-card p-6 border-2 border-transparent bg-atelier-pink rounded-3xl text-center transition-all">
+                    <i class="fas fa-layer-group text-atelier-gold text-2xl mb-4"></i>
+                    <h3 class="font-serif font-bold text-sm uppercase tracking-wider">Barras</h3>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Formulário de Pedido -->
+    <section id="pedido" class="py-20 bg-atelier-pink relative">
+        <div class="max-w-4xl mx-auto px-6 relative z-10">
             <div class="glass-card rounded-3xl shadow-2xl overflow-hidden border border-white">
-                <div class="bg-atelier-dark py-8 text-center text-white">
+                <div class="bg-atelier-dark py-10 text-center text-white">
                     <h2 class="text-3xl font-serif">Solicitar Orçamento</h2>
-                    <p class="text-atelier-gold text-xs uppercase tracking-widest mt-2">Escolha sua forma de entrega</p>
+                    <p class="text-atelier-gold text-xs uppercase tracking-widest mt-2">Atendimento rápido via WhatsApp</p>
+                    <div class="w-20 h-1 bg-atelier-gold mx-auto mt-4 rounded-full"></div>
                 </div>
                 
                 <form id="orderForm" class="p-8 md:p-12 space-y-6" onsubmit="sendToWhatsApp(event)">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div class="space-y-2">
-                            <label class="text-[10px] font-black uppercase tracking-widest text-atelier-gold">Nome Completo</label>
-                            <input type="text" id="nome" required class="w-full p-4 bg-gray-50 border-b-2 border-transparent focus:border-atelier-gold outline-none rounded-t-lg">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-atelier-gold">Seu Nome</label>
+                            <input type="text" id="nome" placeholder="Maria Oliveira" required class="w-full p-4 bg-gray-50 border-b-2 border-transparent focus:border-atelier-gold outline-none transition rounded-t-lg">
                         </div>
                         <div class="space-y-2">
-                            <label class="text-[10px] font-black uppercase tracking-widest text-atelier-gold">Endereço / Bairro</label>
-                            <input type="text" id="endereco" required class="w-full p-4 bg-gray-50 border-b-2 border-transparent focus:border-atelier-gold outline-none rounded-t-lg">
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-black uppercase tracking-widest text-atelier-gold">Serviço</label>
-                            <select id="peca" required class="w-full p-4 bg-gray-50 border-b-2 border-transparent focus:border-atelier-gold outline-none rounded-t-lg">
-                                <option value="Ajuste sob Medida">Ajuste sob Medida</option>
-                                <option value="Barras">Barras e Acabamentos</option>
-                                <option value="Modelagem">Modelagem Completa</option>
+                            <label class="text-[10px] font-black uppercase tracking-widest text-atelier-gold">Serviço Desejado</label>
+                            <select id="peca" required class="w-full p-4 bg-gray-50 border-b-2 border-transparent focus:border-atelier-gold outline-none transition rounded-t-lg">
+                                <option value="Modelagem Completa">Modelagem Completa</option>
+                                <option value="Ajustes">Ajustes</option>
+                                <option value="Personalização">Personalização</option>
+                                <option value="Barras">Barras</option>
                             </select>
                         </div>
                         <div class="space-y-2">
-                            <label class="text-[10px] font-black uppercase tracking-widest text-atelier-gold">Opção de Entrega</label>
-                            <select id="entrega" required onchange="handleDelivery()" class="w-full p-4 bg-gray-50 border-b-2 border-transparent focus:border-atelier-gold outline-none rounded-t-lg">
-                                <option value="Retirada no Ateliê">Retirada no Ateliê (Sem taxa)</option>
-                                <option value="Delivery">Delivery (Contém Taxa de Entrega)</option>
+                            <label class="text-[10px] font-black uppercase tracking-widest text-atelier-gold">Preferência de Entrega</label>
+                            <select id="tipoEntrega" onchange="toggleEndereco()" class="w-full p-4 bg-gray-50 border-b-2 border-transparent focus:border-atelier-gold outline-none transition rounded-t-lg">
+                                <option value="retirada">Retirar no Ateliê</option>
+                                <option value="delivery">Receber em Casa (São Luís)</option>
                             </select>
-                            <p id="deliveryWarning" class="hidden text-[10px] text-red-500 font-bold uppercase mt-1 italic">⚠️ A taxa de entrega será calculada com base no seu bairro.</p>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-atelier-gold">Data Pretendida</label>
+                            <input type="text" id="prazo" placeholder="Selecione no calendário" required class="w-full p-4 bg-gray-50 border-b-2 border-transparent focus:border-atelier-gold outline-none transition rounded-t-lg">
+                        </div>
+                    </div>
+
+                    <!-- Endereço -->
+                    <div id="secao-endereco" class="hidden space-y-4 animate__animated animate__fadeIn">
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-atelier-gold">Endereço de Entrega</label>
+                            <input type="text" id="endereco" placeholder="Ex: Rua do Sol, Centro, São Luís" class="w-full p-4 bg-gray-100 border-b-2 border-transparent focus:border-atelier-gold outline-none transition rounded-t-lg">
                         </div>
                     </div>
 
                     <div class="space-y-2">
-                        <label class="text-[10px] font-black uppercase tracking-widest text-atelier-gold">Observações</label>
-                        <textarea id="obs" rows="3" placeholder="Detalhes da peça ou urgência..." class="w-full p-4 bg-gray-50 border-b-2 border-transparent focus:border-atelier-gold outline-none rounded-t-lg"></textarea>
+                        <label class="text-[10px] font-black uppercase tracking-widest text-atelier-gold">Observações Adicionais</label>
+                        <textarea id="obs" rows="2" placeholder="Descreva detalhes da peça ou do ajuste..." class="w-full p-4 bg-gray-50 border-b-2 border-transparent focus:border-atelier-gold outline-none transition rounded-t-lg"></textarea>
                     </div>
 
-                    <button type="submit" id="btnSubmit" class="w-full bg-atelier-dark text-white font-black py-5 rounded-2xl hover:bg-atelier-gold-dark transition-all flex justify-center items-center gap-3 uppercase tracking-widest text-xs shadow-xl">
-                        <i class="fab fa-whatsapp text-lg"></i> Enviar Pedido para o WhatsApp
+                    <button type="submit" id="btnSubmit" class="w-full bg-atelier-dark text-white font-black py-5 rounded-2xl hover:bg-atelier-gold-dark transition-all transform hover:-translate-y-1 shadow-xl flex justify-center items-center gap-3 uppercase tracking-[0.2em] text-xs">
+                        <i class="fab fa-whatsapp text-xl"></i> Enviar Pedido Completo
                     </button>
                 </form>
             </div>
         </div>
     </section>
 
-    <!-- Firebase SDKs -->
+    <!-- Rodapé -->
+    <footer class="bg-atelier-dark text-white py-12 px-6">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+            <div class="text-center md:text-left">
+                <span class="font-script text-3xl text-atelier-gold block mb-2">Ponto a Ponto</span>
+                <p class="text-xs text-gray-400 uppercase tracking-widest">Alta Costura & Ajustes Finos</p>
+            </div>
+            
+            <div class="flex items-center gap-8">
+                <a href="https://wa.me/559884490648" target="_blank" class="group flex items-center gap-3 text-sm font-bold hover:text-atelier-gold transition">
+                    <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-atelier-gold transition">
+                        <i class="fab fa-whatsapp"></i>
+                    </div>
+                    (98) 98449-0648
+                </a>
+                <a href="https://instagram.com/ateliepontoaponto.6173033" target="_blank" class="group flex items-center gap-3 text-sm font-bold hover:text-atelier-gold transition">
+                    <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-atelier-gold transition">
+                        <i class="fab fa-instagram"></i>
+                    </div>
+                    @ateliepontoaponto
+                </a>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto mt-12 pt-8 border-t border-white/5 text-center text-[10px] text-gray-500 uppercase tracking-widest">
+            © 2026 Ateliê Ponto a Ponto - São Luís, Maranhão. Todos os direitos reservados.
+        </div>
+    </footer>
+
+    <!-- Scripts -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
 
     <script>
-        // Configuração do Firebase com as suas chaves
         const firebaseConfig = {
             apiKey: "AIzaSyAg6XBoOZLuN847qL_5Yfy_mhVvsmgjXj4",
             authDomain: "ateliepontoaponto-2a387.firebaseapp.com",
             projectId: "ateliepontoaponto-2a387",
             storageBucket: "ateliepontoaponto-2a387.firebasestorage.app",
-            messagingSenderId: "219962438132",
             appId: "1:219962438132:web:b15c200ae2a2183e4d89a1"
         };
-
-        // Inicializar Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        const auth = firebase.auth();
-        const appId = "ateliepontoaponto-2a387";
 
-        // Referência da coleção seguindo as regras de path do ambiente
-        const pedidosRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('pedidos');
+        // Flatpickr
+        flatpickr("#prazo", { locale: "pt", minDate: "today", dateFormat: "d/m/Y" });
 
-        function handleDelivery() {
-            const val = document.getElementById('entrega').value;
-            const warning = document.getElementById('deliveryWarning');
-            if (val === 'Delivery') {
-                warning.classList.remove('hidden');
-            } else {
-                warning.classList.add('hidden');
-            }
+        function toggleEndereco() {
+            const tipo = document.getElementById('tipoEntrega').value;
+            const secao = document.getElementById('secao-endereco');
+            tipo === 'delivery' ? secao.classList.remove('hidden') : secao.classList.add('hidden');
         }
 
         async function sendToWhatsApp(event) {
             event.preventDefault();
             const btn = document.getElementById('btnSubmit');
             const originalText = btn.innerHTML;
-            
+            btn.innerHTML = `<i class="fas fa-spinner animate-spin"></i> ENVIANDO...`;
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
 
             const dados = {
                 nome: document.getElementById('nome').value,
-                endereco: document.getElementById('endereco').value,
-                servico: document.getElementById('peca').value,
-                entrega: document.getElementById('entrega').value,
-                obs: document.getElementById('obs').value || "Nenhuma observação",
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                tipo: document.getElementById('peca').value,
+                entrega: document.getElementById('tipoEntrega').value,
+                endereco: document.getElementById('endereco').value || "Retirada no Ateliê",
+                prazo: document.getElementById('prazo').value,
+                obs: document.getElementById('obs').value,
+                dataCriacao: new Date().toISOString()
             };
 
             try {
-                // Tenta autenticar anonimamente para garantir permissão de escrita
-                await auth.signInAnonymously();
-                
-                // Salva os dados no Firestore
-                await pedidosRef.add(dados);
+                const appId = "ateliepontoaponto-2a387";
+                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('pedidos').add(dados);
 
-                // Prepara a mensagem para o WhatsApp
-                const msg = `*NOVO PEDIDO - ATELIÊ PONTO A PONTO* 🧵\n\n` +
-                            `👤 *Cliente:* ${dados.nome}\n` +
-                            `📍 *Bairro/Endereço:* ${dados.endereco}\n` +
-                            `✂️ *Serviço:* ${dados.servico}\n` +
-                            `🚚 *Entrega:* ${dados.entrega}\n` +
-                            `📝 *Obs:* ${dados.obs}`;
-
-                // Abre o WhatsApp (Número configurado: 559884490648)
-                window.open(`https://wa.me/559884490648?text=${encodeURIComponent(msg)}`, '_blank');
-                
-                // Limpa o formulário
-                document.getElementById('orderForm').reset();
-                document.getElementById('deliveryWarning').classList.add('hidden');
-                
+                const msg = `*NOVO PEDIDO - PONTO A PONTO*%0A---------------------------%0A*Cliente:* ${dados.nome}%0A*Serviço:* ${dados.tipo}%0A*Entrega:* ${dados.entrega}%0A*Endereço:* ${dados.endereco}%0A*Data Pretendida:* ${dados.prazo}%0A*Observações:* ${dados.obs}`;
+                window.open(`https://wa.me/559884490648?text=${msg}`);
             } catch (e) {
-                console.error("Erro ao salvar no Firebase:", e);
-                alert("Houve um problema ao processar seu pedido no banco de dados, mas você ainda pode nos chamar no WhatsApp.");
+                alert("Erro ao enviar. Verifique sua conexão.");
             } finally {
-                btn.disabled = false;
                 btn.innerHTML = originalText;
+                btn.disabled = false;
             }
         }
     </script>
