@@ -1,125 +1,356 @@
-<!DOCTYPE html>
-<html lang="pt-BR" class="scroll-smooth">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ateliê Ponto a Ponto | Alta Costura & Ajustes</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+import React, { useState, useEffect } from 'react';
+import { initializeApp } from 'firebase/app';
+import { 
+  getFirestore, 
+  collection, 
+  onSnapshot, 
+  addDoc, 
+  query, 
+  getDocs 
+} from 'firebase/firestore';
+import { 
+  getAuth, 
+  signInAnonymously, 
+  onAuthStateChanged 
+} from 'firebase/auth';
+import { 
+  Scissors, 
+  Calendar, 
+  MapPin, 
+  Instagram, 
+  CheckCircle, 
+  Clock, 
+  AlertTriangle,
+  Menu,
+  X
+} from 'lucide-react';
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: { 
-                        'atelier-gold': '#D4AF37', 
-                        'atelier-gold-dark': '#B8860B',
-                        'atelier-dark': '#1a1a1a', 
-                        'atelier-cream': '#fdfcfb', 
-                        'atelier-pink': '#fbf4f4' 
-                    },
-                    fontFamily: { 
-                        'script': ['"Great Vibes"'], 
-                        'serif': ['"Playfair Display"'], 
-                        'sans': ['"Montserrat"'] 
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
-        .gold-gradient { background: linear-gradient(135deg, #D4AF37 0%, #F1D37E 50%, #D4AF37 100%); }
-        .hero-banner { background-color: #fdfcfb; position: relative; }
-        .text-shadow-elegant { text-shadow: 2px 2px 4px rgba(0,0,0,0.1); }
-        .service-card:hover { transform: translateY(-5px); border-color: #D4AF37; }
-    </style>
-</head>
-<body class="bg-atelier-cream font-sans text-atelier-dark overflow-x-hidden">
+// Firebase Configuration (provided by environment)
+const firebaseConfig = JSON.parse(__firebase_config);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'ponto-a-ponto-atelier';
 
-    <!-- Navbar -->
-    <nav class="bg-white/80 backdrop-blur-md shadow-sm fixed w-full z-50 h-20 flex justify-between items-center px-6 md:px-12 transition-all">
-        <div class="flex items-center gap-2">
-            <span class="font-script text-4xl text-atelier-gold drop-shadow-sm">Ponto a Ponto</span>
+const App = () => {
+  const [user, setUser] = useState(null);
+  const [activeTab, setActiveTab] = useState('home');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [blockedDates, setBlockedDates] = useState([]);
+  const [formStatus, setFormStatus] = useState({ loading: false, success: false });
+
+  // Form State
+  const [formData, setFormData] = useState({
+    nome: '',
+    bairro: '',
+    telefone: '',
+    servico: 'Ajustes',
+    endereco: '',
+    dataEntrega: '',
+    observacao: ''
+  });
+
+  // 1. Authentication
+  useEffect(() => {
+    const initAuth = async () => {
+      try {
+        await signInAnonymously(auth);
+      } catch (err) {
+        console.error("Erro na autenticação:", err);
+      }
+    };
+    initAuth();
+    return onAuthStateChanged(auth, setUser);
+  }, []);
+
+  // 2. Load Blocked Dates from Firestore
+  useEffect(() => {
+    if (!user) return;
+    const q = collection(db, 'artifacts', appId, 'public', 'data', 'blocked_dates');
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const dates = snapshot.docs.map(doc => doc.data().date);
+      setBlockedDates(dates);
+    }, (err) => console.error("Erro ao carregar datas:", err));
+
+    return () => unsubscribe();
+  }, [user]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!user) return;
+    setFormStatus({ loading: true, success: false });
+
+    try {
+      // Save order to Firestore
+      await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'pedidos'), {
+        ...formData,
+        status: 'pendente',
+        createdAt: new Date().toISOString()
+      });
+
+      // Format WhatsApp Message
+      const message = `Olá Ateliê Ponto a Ponto! Gostaria de solicitar um serviço:
+*Nome:* ${formData.nome}
+*Serviço:* ${formData.servico}
+*Bairro:* ${formData.bairro}
+*Endereço:* ${formData.endereco}
+*Data Desejada:* ${formData.dataEntrega}
+*Obs:* ${formData.observacao || 'Nenhuma'}`;
+
+      const encodedMsg = encodeURIComponent(message);
+      const whatsappUrl = `https://wa.me/5598984490648?text=${encodedMsg}`;
+
+      setFormStatus({ loading: false, success: true });
+      
+      // Delay to show success before redirect
+      setTimeout(() => {
+        window.open(whatsappUrl, '_blank');
+      }, 1500);
+
+    } catch (err) {
+      console.error("Erro ao enviar pedido:", err);
+      setFormStatus({ loading: false, success: false });
+    }
+  };
+
+  const services = [
+    { title: "Ajustes", desc: "O caimento perfeito para as suas peças favoritas.", icon: <Scissors className="text-[#D4AF37]" /> },
+    { title: "Barras de Calça", desc: "Acabamento original e precisão artesanal.", icon: <CheckCircle className="text-[#D4AF37]" /> },
+    { title: "Modelagem Completa", desc: "Criação de peças exclusivas do zero.", icon: <Scissors className="text-[#D4AF37]" /> },
+    { title: "Consertos", desc: "Vida nova às roupas que você mais ama.", icon: <Clock className="text-[#D4AF37]" /> }
+  ];
+
+  return (
+    <div className="min-h-screen bg-[#F9F9F9] text-[#2C2C2C] font-sans">
+      {/* Navigation */}
+      <nav className="bg-white border-b border-gray-100 sticky top-0 z-50 px-6 py-4 flex justify-between items-center shadow-sm">
+        <div className="flex items-center gap-2">
+          <div className="w-10 h-10 bg-[#2C2C2C] flex items-center justify-center rounded-full">
+            <span className="text-[#D4AF37] font-serif text-xl">P</span>
+          </div>
+          <h1 className="text-xl font-serif tracking-widest font-bold uppercase">Ponto a Ponto</h1>
         </div>
+
+        {/* Desktop Menu */}
+        <div className="hidden md:flex gap-8 text-sm font-medium uppercase tracking-wider">
+          {['home', 'serviços', 'agendamento'].map(item => (
+            <button 
+              key={item}
+              onClick={() => setActiveTab(item)}
+              className={`${activeTab === item ? 'text-[#D4AF37]' : 'text-gray-500'} hover:text-[#D4AF37] transition-colors`}
+            >
+              {item}
+            </button>
+          ))}
+        </div>
+
+        <button className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+          {isMenuOpen ? <X /> : <Menu />}
+        </button>
+      </nav>
+
+      {/* Mobile Menu */}
+      {isMenuOpen && (
+        <div className="md:hidden bg-white w-full border-b p-6 flex flex-col gap-4">
+          {['home', 'serviços', 'agendamento'].map(item => (
+            <button 
+              key={item}
+              onClick={() => { setActiveTab(item); setIsMenuOpen(false); }}
+              className="text-left py-2 font-medium uppercase tracking-wider border-b border-gray-50"
+            >
+              {item}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Content */}
+      <main className="max-w-6xl mx-auto p-6">
         
-        <div class="flex items-center gap-4 md:gap-8">
-            <div class="hidden md:flex gap-8 text-sm font-semibold uppercase tracking-widest text-atelier-dark mr-4">
-                <a href="#inicio" class="hover:text-atelier-gold transition">Início</a>
-                <a href="#servicos" class="hover:text-atelier-gold transition">Serviços</a>
+        {/* Hero Section */}
+        {activeTab === 'home' && (
+          <div className="py-12 md:py-24 text-center">
+            <h2 className="text-4xl md:text-6xl font-serif mb-6 text-[#2C2C2C]">A elegância nos detalhes,<br/><span className="italic text-[#D4AF37]">o cuidado em cada ponto.</span></h2>
+            <p className="max-w-2xl mx-auto text-gray-500 leading-relaxed mb-10">
+              No Ateliê Ponto a Ponto, transformamos tecido em confiança. De simples ajustes a modelagens exclusivas, garantimos o caimento impecável que você merece.
+            </p>
+            <button 
+              onClick={() => setActiveTab('agendamento')}
+              className="bg-[#2C2C2C] text-[#D4AF37] px-10 py-4 rounded-full font-bold uppercase tracking-widest hover:bg-[#3d3d3d] transition-all shadow-lg"
+            >
+              Agendar Serviço
+            </button>
+          </div>
+        )}
+
+        {/* Services Grid */}
+        {(activeTab === 'home' || activeTab === 'serviços') && (
+          <div className="py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {services.map((s, i) => (
+              <div key={i} className="bg-white p-8 rounded-2xl shadow-sm border border-gray-50 hover:shadow-md transition-shadow">
+                <div className="mb-4">{s.icon}</div>
+                <h3 className="font-bold text-lg mb-2">{s.title}</h3>
+                <p className="text-sm text-gray-500">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Appointment Form */}
+        {activeTab === 'agendamento' && (
+          <div className="max-w-2xl mx-auto bg-white p-8 md:p-12 rounded-3xl shadow-xl border border-gray-50 mb-20">
+            <div className="text-center mb-10">
+              <h2 className="text-3xl font-serif mb-2">Solicitar Orçamento</h2>
+              <p className="text-gray-400">Preencha os dados abaixo e entraremos em contato via WhatsApp.</p>
             </div>
-            <a href="#pedido" class="gold-gradient text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-lg hover:scale-105 transition-transform">
-                AGENDAR
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold uppercase text-gray-400">Nome Completo</label>
+                  <input 
+                    required
+                    name="nome"
+                    value={formData.nome}
+                    onChange={handleInputChange}
+                    className="bg-gray-50 border-none p-3 rounded-lg focus:ring-2 focus:ring-[#D4AF37] outline-none" 
+                    placeholder="Como podemos lhe chamar?"
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold uppercase text-gray-400">Telefone</label>
+                  <input 
+                    required
+                    name="telefone"
+                    value={formData.telefone}
+                    onChange={handleInputChange}
+                    className="bg-gray-50 border-none p-3 rounded-lg focus:ring-2 focus:ring-[#D4AF37] outline-none" 
+                    placeholder="(00) 00000-0000"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold uppercase text-gray-400">Bairro</label>
+                  <input 
+                    required
+                    name="bairro"
+                    value={formData.bairro}
+                    onChange={handleInputChange}
+                    className="bg-gray-50 border-none p-3 rounded-lg focus:ring-2 focus:ring-[#D4AF37] outline-none" 
+                    placeholder="Bairro para entrega/coleta"
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold uppercase text-gray-400">Serviço Desejado</label>
+                  <select 
+                    name="servico"
+                    value={formData.servico}
+                    onChange={handleInputChange}
+                    className="bg-gray-50 border-none p-3 rounded-lg focus:ring-2 focus:ring-[#D4AF37] outline-none appearance-none"
+                  >
+                    {services.map(s => <option key={s.title} value={s.title}>{s.title}</option>)}
+                    <option value="Festa & Noivas">Festa & Noivas</option>
+                    <option value="Upcycling">Upcycling (Customização)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold uppercase text-gray-400">Endereço Completo</label>
+                <input 
+                  required
+                  name="endereco"
+                  value={formData.endereco}
+                  onChange={handleInputChange}
+                  className="bg-gray-50 border-none p-3 rounded-lg focus:ring-2 focus:ring-[#D4AF37] outline-none" 
+                  placeholder="Rua, número, complemento"
+                />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold uppercase text-gray-400">Data de Entrega Desejada</label>
+                <input 
+                  required
+                  type="date"
+                  name="dataEntrega"
+                  value={formData.dataEntrega}
+                  onChange={handleInputChange}
+                  min={new Date().toISOString().split('T')[0]}
+                  className="bg-gray-50 border-none p-3 rounded-lg focus:ring-2 focus:ring-[#D4AF37] outline-none" 
+                />
+                {blockedDates.includes(formData.dataEntrega) && (
+                  <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                    <AlertTriangle size={14} /> Esta data já está lotada. Por favor, escolha outro dia.
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold uppercase text-gray-400">Observações (Opcional)</label>
+                <textarea 
+                  name="observacao"
+                  value={formData.observacao}
+                  onChange={handleInputChange}
+                  className="bg-gray-50 border-none p-3 rounded-lg focus:ring-2 focus:ring-[#D4AF37] outline-none h-24" 
+                  placeholder="Detalhes sobre a peça..."
+                />
+              </div>
+
+              <button 
+                type="submit"
+                disabled={formStatus.loading || blockedDates.includes(formData.dataEntrega)}
+                className={`w-full py-4 rounded-xl font-bold uppercase tracking-widest transition-all shadow-lg flex items-center justify-center gap-3
+                  ${formStatus.success ? 'bg-green-600 text-white' : 'bg-[#D4AF37] text-white hover:bg-[#b8962e] disabled:bg-gray-300'}`}
+              >
+                {formStatus.loading ? 'Enviando...' : formStatus.success ? 'Pedido Enviado!' : 'Solicitar via WhatsApp'}
+              </button>
+            </form>
+          </div>
+        )}
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-white border-t border-gray-100 py-12 px-6">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 items-center text-center md:text-left">
+          <div>
+            <div className="flex items-center gap-2 justify-center md:justify-start mb-4">
+              <div className="w-8 h-8 bg-[#2C2C2C] flex items-center justify-center rounded-full">
+                <span className="text-[#D4AF37] font-serif">P</span>
+              </div>
+              <h1 className="text-lg font-serif tracking-widest font-bold uppercase">Ponto a Ponto</h1>
+            </div>
+            <p className="text-sm text-gray-400">Transformando peças, realizando sonhos.</p>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <h4 className="text-xs font-bold uppercase text-gray-300 tracking-[0.2em] mb-2">Conecte-se</h4>
+            <a href="https://instagram.com/ateliepontoaponto.6173033" className="flex items-center gap-2 justify-center md:justify-start text-sm hover:text-[#D4AF37] transition-colors">
+              <Instagram size={16} /> @ateliepontoaponto.6173033
             </a>
-        </div>
-    </nav>
+            <a href="https://instagram.com/nice.santos85" className="flex items-center gap-2 justify-center md:justify-start text-sm hover:text-[#D4AF37] transition-colors">
+              <Instagram size={16} /> @nice.santos85
+            </a>
+          </div>
 
-    <!-- Hero Section -->
-    <section id="inicio" class="hero-banner pt-48 pb-20 px-6 flex flex-col items-center justify-center text-center">
-        <div class="animate__animated animate__fadeInDown">
-            <span class="font-script text-5xl md:text-7xl text-white block mb-[-15px] text-shadow-elegant drop-shadow-lg" style="color: white !important; -webkit-text-stroke: 0.5px #D4AF37;">Ateliê</span>
-            <h1 class="font-serif text-5xl md:text-8xl font-bold text-white uppercase tracking-tighter text-shadow-elegant drop-shadow-lg" style="color: white !important; -webkit-text-stroke: 1px #D4AF37;">Ponto a Ponto</h1>
+          <div className="text-center md:text-right">
+            <p className="text-xs text-gray-400 mb-1">Desenvolvido com sofisticação por</p>
+            <a href="https://instagram.com/lucaswillame31" className="text-sm font-bold hover:text-[#D4AF37] transition-colors">@lucaswillame31</a>
+          </div>
         </div>
-        
-        <div class="mt-8 max-w-2xl animate__animated animate__fadeIn animate__delay-1s">
-            <span class="inline-block px-4 py-1 mb-6 border border-atelier-gold text-atelier-gold text-xs font-black uppercase tracking-[0.3em]">Exclusividade em cada detalhe</span>
-            <p class="text-gray-500 text-lg">Alta costura maranhense com precisão artesanal e atendimento personalizado.</p>
-        </div>
-    </section>
+      </footer>
+    </div>
+  );
+};
 
-    <!-- Seção de Serviços -->
-    <section id="servicos" class="py-16 bg-white border-y border-gray-100">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
-                <div class="service-card p-6 border-2 border-transparent bg-atelier-pink rounded-3xl text-center transition-all">
-                    <i class="fas fa-cut text-atelier-gold text-2xl mb-4"></i>
-                    <h3 class="font-serif font-bold text-sm uppercase tracking-wider">Modelagem Completa</h3>
-                </div>
-                <div class="service-card p-6 border-2 border-transparent bg-atelier-pink rounded-3xl text-center transition-all">
-                    <i class="fas fa-compress-alt text-atelier-gold text-2xl mb-4"></i>
-                    <h3 class="font-serif font-bold text-sm uppercase tracking-wider">Ajustes</h3>
-                </div>
-                <div class="service-card p-6 border-2 border-transparent bg-atelier-pink rounded-3xl text-center transition-all">
-                    <i class="fas fa-magic text-atelier-gold text-2xl mb-4"></i>
-                    <h3 class="font-serif font-bold text-sm uppercase tracking-wider">Personalização</h3>
-                </div>
-                <div class="service-card p-6 border-2 border-transparent bg-atelier-pink rounded-3xl text-center transition-all">
-                    <i class="fas fa-layer-group text-atelier-gold text-2xl mb-4"></i>
-                    <h3 class="font-serif font-bold text-sm uppercase tracking-wider">Barras</h3>
-                </div>
-            </div>
-        </div>
-    </section>
+export default App;
 
-    <!-- Formulário de Pedido -->
-    <section id="pedido" class="py-20 bg-atelier-pink relative">
-        <div class="max-w-4xl mx-auto px-6 relative z-10">
-            <div class="glass-card rounded-3xl shadow-2xl overflow-hidden border border-white">
-                <div class="bg-atelier-dark py-10 text-center text-white">
-                    <h2 class="text-3xl font-serif">Solicitar Orçamento</h2>
-                    <p class="text-atelier-gold text-xs uppercase tracking-widest mt-2">Atendimento rápido via WhatsApp</p>
-                    <div class="w-20 h-1 bg-atelier-gold mx-auto mt-4 rounded-full"></div>
-                </div>
-                
-                <form id="orderForm" class="p-8 md:p-12 space-y-6" onsubmit="sendToWhatsApp(event)">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-black uppercase tracking-widest text-atelier-gold">Seu Nome</label>
-                            <input type="text" id="nome" placeholder="Maria Oliveira" required class="w-full p-4 bg-gray-50 border-b-2 border-transparent focus:border-atelier-gold outline-none transition rounded-t-lg">
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-black uppercase tracking-widest text-atelier-gold">Serviço Desejado</label>
-                            <select id="peca" required class="w-full p-4 bg-gray-50 border-b-2 border-transparent focus:border-atelier-gold outline-none transition rounded-t-lg">
-                                <option value="Modelagem Completa">Modelagem Completa</option>
-                                <option value="Ajustes">Ajustes</option>
-                                <option value="Personalização">Personalização</option>
-                                <option value="Barras">Barras</option>
-                            </select>
-                        </div>
-                        <div class="space-y-2">
                             <label class="text-[10px] font-black uppercase tracking-widest text-atelier-gold">Preferência de Entrega</label>
                             <select id="tipoEntrega" onchange="toggleEndereco()" class="w-full p-4 bg-gray-50 border-b-2 border-transparent focus:border-atelier-gold outline-none transition rounded-t-lg">
                                 <option value="retirada">Retirar no Ateliê</option>
