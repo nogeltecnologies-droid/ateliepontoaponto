@@ -4,9 +4,7 @@ import {
   getFirestore, 
   collection, 
   onSnapshot, 
-  addDoc, 
-  query, 
-  getDocs 
+  addDoc 
 } from 'firebase/firestore';
 import { 
   getAuth, 
@@ -15,17 +13,16 @@ import {
 } from 'firebase/auth';
 import { 
   Scissors, 
-  Calendar, 
-  MapPin, 
   Instagram, 
   CheckCircle, 
   Clock, 
   AlertTriangle,
   Menu,
-  X
+  X,
+  Star
 } from 'lucide-react';
 
-// Firebase Configuration (provided by environment)
+// Configuração do Firebase
 const firebaseConfig = JSON.parse(__firebase_config);
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -39,7 +36,7 @@ const App = () => {
   const [blockedDates, setBlockedDates] = useState([]);
   const [formStatus, setFormStatus] = useState({ loading: false, success: false });
 
-  // Form State
+  // Estado do formulário
   const [formData, setFormData] = useState({
     nome: '',
     bairro: '',
@@ -47,32 +44,53 @@ const App = () => {
     servico: 'Ajustes',
     endereco: '',
     dataEntrega: '',
+    urgente: 'Não',
     observacao: ''
   });
 
-  // 1. Authentication
+  // 1. Autenticação Segura
   useEffect(() => {
-    const initAuth = async () => {
+    const login = async () => {
       try {
         await signInAnonymously(auth);
       } catch (err) {
-        console.error("Erro na autenticação:", err);
+        console.error("Falha no login inicial:", err);
       }
     };
-    initAuth();
-    return onAuthStateChanged(auth, setUser);
+    login();
+
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
   }, []);
 
-  // 2. Load Blocked Dates from Firestore
+  // 2. Sincronização de Datas com Retry
   useEffect(() => {
     if (!user) return;
-    const q = collection(db, 'artifacts', appId, 'public', 'data', 'blocked_dates');
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const dates = snapshot.docs.map(doc => doc.data().date);
-      setBlockedDates(dates);
-    }, (err) => console.error("Erro ao carregar datas:", err));
 
-    return () => unsubscribe();
+    let unsubscribe;
+    let retryTimeout;
+
+    const startListening = () => {
+      const datesCollection = collection(db, 'artifacts', appId, 'public', 'data', 'blocked_dates');
+      
+      unsubscribe = onSnapshot(datesCollection, (snapshot) => {
+        const dates = snapshot.docs.map(doc => doc.data().date);
+        setBlockedDates(dates);
+      }, (err) => {
+        if (err.code === 'permission-denied') {
+          retryTimeout = setTimeout(startListening, 1500);
+        }
+      });
+    };
+
+    startListening();
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+      if (retryTimeout) clearTimeout(retryTimeout);
+    };
   }, [user]);
 
   const handleInputChange = (e) => {
@@ -83,35 +101,36 @@ const App = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!user) return;
+    
+    if (blockedDates.includes(formData.dataEntrega)) return;
+
     setFormStatus({ loading: true, success: false });
 
     try {
-      // Save order to Firestore
-      await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'pedidos'), {
+      const pedidosRef = collection(db, 'artifacts', appId, 'public', 'data', 'pedidos');
+      
+      await addDoc(pedidosRef, {
         ...formData,
         status: 'pendente',
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        userId: user.uid
       });
 
-      // Format WhatsApp Message
       const message = `Olá Ateliê Ponto a Ponto! Gostaria de solicitar um serviço:
 *Nome:* ${formData.nome}
 *Serviço:* ${formData.servico}
 *Bairro:* ${formData.bairro}
 *Endereço:* ${formData.endereco}
 *Data Desejada:* ${formData.dataEntrega}
+*É Urgente?* ${formData.urgente}
 *Obs:* ${formData.observacao || 'Nenhuma'}`;
 
-      const encodedMsg = encodeURIComponent(message);
-      const whatsappUrl = `https://wa.me/5598984490648?text=${encodedMsg}`;
-
+      const whatsappUrl = `https://wa.me/5598984490648?text=${encodeURIComponent(message)}`;
       setFormStatus({ loading: false, success: true });
       
-      // Delay to show success before redirect
       setTimeout(() => {
         window.open(whatsappUrl, '_blank');
       }, 1500);
-
     } catch (err) {
       console.error("Erro ao enviar pedido:", err);
       setFormStatus({ loading: false, success: false });
@@ -120,14 +139,13 @@ const App = () => {
 
   const services = [
     { title: "Ajustes", desc: "O caimento perfeito para as suas peças favoritas.", icon: <Scissors className="text-[#D4AF37]" /> },
-    { title: "Barras de Calça", desc: "Acabamento original e precisão artesanal.", icon: <CheckCircle className="text-[#D4AF37]" /> },
-    { title: "Modelagem Completa", desc: "Criação de peças exclusivas do zero.", icon: <Scissors className="text-[#D4AF37]" /> },
+    { title: "Barras", desc: "Acabamento original e precisão artesanal.", icon: <CheckCircle className="text-[#D4AF37]" /> },
+    { title: "Modelagem", desc: "Criação de peças exclusivas do zero.", icon: <Star className="text-[#D4AF37]" /> },
     { title: "Consertos", desc: "Vida nova às roupas que você mais ama.", icon: <Clock className="text-[#D4AF37]" /> }
   ];
 
   return (
     <div className="min-h-screen bg-[#F9F9F9] text-[#2C2C2C] font-sans">
-      {/* Navigation */}
       <nav className="bg-white border-b border-gray-100 sticky top-0 z-50 px-6 py-4 flex justify-between items-center shadow-sm">
         <div className="flex items-center gap-2">
           <div className="w-10 h-10 bg-[#2C2C2C] flex items-center justify-center rounded-full">
@@ -135,213 +153,130 @@ const App = () => {
           </div>
           <h1 className="text-xl font-serif tracking-widest font-bold uppercase">Ponto a Ponto</h1>
         </div>
-
-        {/* Desktop Menu */}
         <div className="hidden md:flex gap-8 text-sm font-medium uppercase tracking-wider">
           {['home', 'serviços', 'agendamento'].map(item => (
-            <button 
-              key={item}
-              onClick={() => setActiveTab(item)}
-              className={`${activeTab === item ? 'text-[#D4AF37]' : 'text-gray-500'} hover:text-[#D4AF37] transition-colors`}
-            >
-              {item}
-            </button>
+            <button key={item} onClick={() => setActiveTab(item === 'serviços' ? 'servicos' : item)} className={`${(activeTab === item || (activeTab === 'servicos' && item === 'serviços')) ? 'text-[#D4AF37]' : 'text-gray-500'} hover:text-[#D4AF37] transition-colors`}>{item}</button>
           ))}
         </div>
-
-        <button className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-          {isMenuOpen ? <X /> : <Menu />}
-        </button>
+        <button className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>{isMenuOpen ? <X /> : <Menu />}</button>
       </nav>
 
-      {/* Mobile Menu */}
-      {isMenuOpen && (
-        <div className="md:hidden bg-white w-full border-b p-6 flex flex-col gap-4">
-          {['home', 'serviços', 'agendamento'].map(item => (
-            <button 
-              key={item}
-              onClick={() => { setActiveTab(item); setIsMenuOpen(false); }}
-              className="text-left py-2 font-medium uppercase tracking-wider border-b border-gray-50"
-            >
-              {item}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Content */}
       <main className="max-w-6xl mx-auto p-6">
-        
-        {/* Hero Section */}
-        {activeTab === 'home' && (
+        {!user && (
+          <div className="py-20 text-center flex flex-col items-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D4AF37] mb-4"></div>
+            <p className="text-gray-400">Garantindo conexão segura...</p>
+          </div>
+        )}
+
+        {user && activeTab === 'home' && (
           <div className="py-12 md:py-24 text-center">
             <h2 className="text-4xl md:text-6xl font-serif mb-6 text-[#2C2C2C]">A elegância nos detalhes,<br/><span className="italic text-[#D4AF37]">o cuidado em cada ponto.</span></h2>
-            <p className="max-w-2xl mx-auto text-gray-500 leading-relaxed mb-10">
-              No Ateliê Ponto a Ponto, transformamos tecido em confiança. De simples ajustes a modelagens exclusivas, garantimos o caimento impecável que você merece.
-            </p>
-            <button 
-              onClick={() => setActiveTab('agendamento')}
-              className="bg-[#2C2C2C] text-[#D4AF37] px-10 py-4 rounded-full font-bold uppercase tracking-widest hover:bg-[#3d3d3d] transition-all shadow-lg"
-            >
-              Agendar Serviço
-            </button>
-          </div>
-        )}
-
-        {/* Services Grid */}
-        {(activeTab === 'home' || activeTab === 'serviços') && (
-          <div className="py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {services.map((s, i) => (
-              <div key={i} className="bg-white p-8 rounded-2xl shadow-sm border border-gray-50 hover:shadow-md transition-shadow">
-                <div className="mb-4">{s.icon}</div>
-                <h3 className="font-bold text-lg mb-2">{s.title}</h3>
-                <p className="text-sm text-gray-500">{s.desc}</p>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Appointment Form */}
-        {activeTab === 'agendamento' && (
-          <div className="max-w-2xl mx-auto bg-white p-8 md:p-12 rounded-3xl shadow-xl border border-gray-50 mb-20">
-            <div className="text-center mb-10">
-              <h2 className="text-3xl font-serif mb-2">Solicitar Orçamento</h2>
-              <p className="text-gray-400">Preencha os dados abaixo e entraremos em contato via WhatsApp.</p>
+            <p className="max-w-2xl mx-auto text-gray-500 mb-10 text-lg leading-relaxed">No Ateliê Ponto a Ponto, transformamos tecido em confiança com o caimento impecável que você merece.</p>
+            <button onClick={() => setActiveTab('agendamento')} className="bg-[#2C2C2C] text-[#D4AF37] px-12 py-5 rounded-full font-bold uppercase tracking-widest shadow-xl active:scale-95 transition-all">Agendar Serviço</button>
+            
+            <div className="mt-20 grid grid-cols-1 md:grid-cols-4 gap-6">
+              {services.map((s, i) => (
+                <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-50">
+                  <div className="mb-3">{s.icon}</div>
+                  <h3 className="font-bold mb-1">{s.title}</h3>
+                  <p className="text-xs text-gray-400">{s.desc}</p>
+                </div>
+              ))}
             </div>
+          </div>
+        )}
 
+        {user && activeTab === 'servicos' && (
+           <div className="py-12">
+             <h2 className="text-3xl font-serif text-center mb-12">Nossos Serviços Especializados</h2>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+               {services.map((s, i) => (
+                 <div key={i} className="bg-white p-8 rounded-3xl shadow-sm flex items-start gap-6 border border-gray-100">
+                   <div className="p-4 bg-gray-50 rounded-2xl">{s.icon}</div>
+                   <div>
+                     <h3 className="text-xl font-bold mb-2">{s.title}</h3>
+                     <p className="text-gray-500 leading-relaxed">{s.desc}</p>
+                   </div>
+                 </div>
+               ))}
+             </div>
+           </div>
+        )}
+
+        {user && activeTab === 'agendamento' && (
+          <div className="max-w-2xl mx-auto bg-white p-8 md:p-12 rounded-3xl shadow-2xl border border-gray-50 mb-20">
+            <h2 className="text-3xl font-serif text-center mb-2">Solicitar Orçamento</h2>
+            <p className="text-center text-gray-400 mb-10 text-sm">Preencha e envie para o WhatsApp da Nice</p>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs font-bold uppercase text-gray-400">Nome Completo</label>
-                  <input 
-                    required
-                    name="nome"
-                    value={formData.nome}
-                    onChange={handleInputChange}
-                    className="bg-gray-50 border-none p-3 rounded-lg focus:ring-2 focus:ring-[#D4AF37] outline-none" 
-                    placeholder="Como podemos lhe chamar?"
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs font-bold uppercase text-gray-400">Telefone</label>
-                  <input 
-                    required
-                    name="telefone"
-                    value={formData.telefone}
-                    onChange={handleInputChange}
-                    className="bg-gray-50 border-none p-3 rounded-lg focus:ring-2 focus:ring-[#D4AF37] outline-none" 
-                    placeholder="(00) 00000-0000"
-                  />
-                </div>
+                <input required name="nome" value={formData.nome} onChange={handleInputChange} className="bg-gray-50 p-4 rounded-xl outline-none focus:ring-2 focus:ring-[#D4AF37]" placeholder="Seu nome" />
+                <input required name="telefone" value={formData.telefone} onChange={handleInputChange} className="bg-gray-50 p-4 rounded-xl outline-none focus:ring-2 focus:ring-[#D4AF37]" placeholder="Telefone" />
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <input required name="bairro" value={formData.bairro} onChange={handleInputChange} className="bg-gray-50 p-4 rounded-xl outline-none focus:ring-2 focus:ring-[#D4AF37]" placeholder="Seu bairro" />
+                <select name="servico" value={formData.servico} onChange={handleInputChange} className="bg-gray-50 p-4 rounded-xl outline-none focus:ring-2 focus:ring-[#D4AF37]">
+                  <option value="Ajustes">Ajustes</option>
+                  <option value="Barras">Barras</option>
+                  <option value="Modelagem">Modelagem</option>
+                  <option value="Consertos">Consertos</option>
+                  <option value="Outros">Outros</option>
+                </select>
               </div>
 
+              <input required name="endereco" value={formData.endereco} onChange={handleInputChange} className="w-full bg-gray-50 p-4 rounded-xl outline-none focus:ring-2 focus:ring-[#D4AF37]" placeholder="Endereço completo (Rua, Nº, Ref)" />
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="flex flex-col gap-2">
-                  <label className="text-xs font-bold uppercase text-gray-400">Bairro</label>
+                  <label className="text-xs font-bold uppercase text-gray-400 tracking-wider">Data Desejada</label>
                   <input 
-                    required
-                    name="bairro"
-                    value={formData.bairro}
-                    onChange={handleInputChange}
-                    className="bg-gray-50 border-none p-3 rounded-lg focus:ring-2 focus:ring-[#D4AF37] outline-none" 
-                    placeholder="Bairro para entrega/coleta"
+                    required type="date" name="dataEntrega" value={formData.dataEntrega} onChange={handleInputChange} 
+                    min={new Date().toISOString().split('T')[0]}
+                    className={`bg-gray-50 p-4 rounded-xl outline-none ${blockedDates.includes(formData.dataEntrega) ? 'ring-2 ring-red-400' : 'focus:ring-2 focus:ring-[#D4AF37]'}`} 
                   />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <label className="text-xs font-bold uppercase text-gray-400">Serviço Desejado</label>
-                  <select 
-                    name="servico"
-                    value={formData.servico}
-                    onChange={handleInputChange}
-                    className="bg-gray-50 border-none p-3 rounded-lg focus:ring-2 focus:ring-[#D4AF37] outline-none appearance-none"
-                  >
-                    {services.map(s => <option key={s.title} value={s.title}>{s.title}</option>)}
-                    <option value="Festa & Noivas">Festa & Noivas</option>
-                    <option value="Upcycling">Upcycling (Customização)</option>
+                  <label className="text-xs font-bold uppercase text-gray-400 tracking-wider">É urgente?</label>
+                  <select name="urgente" value={formData.urgente} onChange={handleInputChange} className="bg-gray-50 p-4 rounded-xl outline-none focus:ring-2 focus:ring-[#D4AF37]">
+                    <option value="Não">Não</option>
+                    <option value="Sim">Sim (Preciso logo)</option>
                   </select>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold uppercase text-gray-400">Endereço Completo</label>
-                <input 
-                  required
-                  name="endereco"
-                  value={formData.endereco}
-                  onChange={handleInputChange}
-                  className="bg-gray-50 border-none p-3 rounded-lg focus:ring-2 focus:ring-[#D4AF37] outline-none" 
-                  placeholder="Rua, número, complemento"
-                />
-              </div>
+              {blockedDates.includes(formData.dataEntrega) && (
+                <p className="text-red-500 text-xs font-bold animate-pulse flex items-center gap-1">
+                  <AlertTriangle size={14} /> Esta data já está lotada. Por favor, escolha outro dia.
+                </p>
+              )}
 
               <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold uppercase text-gray-400">Data de Entrega Desejada</label>
-                <input 
-                  required
-                  type="date"
-                  name="dataEntrega"
-                  value={formData.dataEntrega}
-                  onChange={handleInputChange}
-                  min={new Date().toISOString().split('T')[0]}
-                  className="bg-gray-50 border-none p-3 rounded-lg focus:ring-2 focus:ring-[#D4AF37] outline-none" 
-                />
-                {blockedDates.includes(formData.dataEntrega) && (
-                  <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
-                    <AlertTriangle size={14} /> Esta data já está lotada. Por favor, escolha outro dia.
-                  </p>
-                )}
+                <label className="text-xs font-bold uppercase text-gray-400 tracking-wider">Observações</label>
+                <textarea name="observacao" value={formData.observacao} onChange={handleInputChange} className="bg-gray-50 p-4 rounded-xl outline-none focus:ring-2 focus:ring-[#D4AF37] h-24 resize-none" placeholder="Detalhe o que você precisa..." />
               </div>
 
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold uppercase text-gray-400">Observações (Opcional)</label>
-                <textarea 
-                  name="observacao"
-                  value={formData.observacao}
-                  onChange={handleInputChange}
-                  className="bg-gray-50 border-none p-3 rounded-lg focus:ring-2 focus:ring-[#D4AF37] outline-none h-24" 
-                  placeholder="Detalhes sobre a peça..."
-                />
-              </div>
-
-              <button 
-                type="submit"
-                disabled={formStatus.loading || blockedDates.includes(formData.dataEntrega)}
-                className={`w-full py-4 rounded-xl font-bold uppercase tracking-widest transition-all shadow-lg flex items-center justify-center gap-3
-                  ${formStatus.success ? 'bg-green-600 text-white' : 'bg-[#D4AF37] text-white hover:bg-[#b8962e] disabled:bg-gray-300'}`}
-              >
-                {formStatus.loading ? 'Enviando...' : formStatus.success ? 'Pedido Enviado!' : 'Solicitar via WhatsApp'}
+              <button disabled={formStatus.loading || blockedDates.includes(formData.dataEntrega)} className="w-full py-5 rounded-2xl font-bold uppercase tracking-widest bg-[#2C2C2C] text-[#D4AF37] hover:bg-[#3d3d3d] transition-all disabled:opacity-50 shadow-lg active:scale-95">
+                {formStatus.loading ? 'Enviando...' : formStatus.success ? 'Pedido Enviado!' : 'Enviar para WhatsApp'}
               </button>
             </form>
           </div>
         )}
       </main>
 
-      {/* Footer */}
       <footer className="bg-white border-t border-gray-100 py-12 px-6">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 items-center text-center md:text-left">
-          <div>
-            <div className="flex items-center gap-2 justify-center md:justify-start mb-4">
-              <div className="w-8 h-8 bg-[#2C2C2C] flex items-center justify-center rounded-full">
-                <span className="text-[#D4AF37] font-serif">P</span>
-              </div>
-              <h1 className="text-lg font-serif tracking-widest font-bold uppercase">Ponto a Ponto</h1>
-            </div>
-            <p className="text-sm text-gray-400">Transformando peças, realizando sonhos.</p>
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          <div className="text-center md:text-left">
+            <h3 className="font-serif font-bold text-lg mb-2">Ateliê Ponto a Ponto</h3>
+            <p className="text-sm text-gray-400">Nice Santos - Estilista e Costureira</p>
           </div>
-
-          <div className="flex flex-col gap-2">
-            <h4 className="text-xs font-bold uppercase text-gray-300 tracking-[0.2em] mb-2">Conecte-se</h4>
-            <a href="https://instagram.com/ateliepontoaponto.6173033" className="flex items-center gap-2 justify-center md:justify-start text-sm hover:text-[#D4AF37] transition-colors">
-              <Instagram size={16} /> @ateliepontoaponto.6173033
+          <div className="flex justify-center md:justify-end gap-8">
+            <a href="https://instagram.com/ateliepontoaponto.6173033" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm hover:text-[#D4AF37] transition-all">
+              <Instagram size={20} /> @ateliepontoaponto
             </a>
-            <a href="https://instagram.com/nice.santos85" className="flex items-center gap-2 justify-center md:justify-start text-sm hover:text-[#D4AF37] transition-colors">
-              <Instagram size={16} /> @nice.santos85
+            <a href="https://instagram.com/nice.santos85" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm hover:text-[#D4AF37] transition-all">
+              <Instagram size={20} /> @nice.santos85
             </a>
-          </div>
-
-          <div className="text-center md:text-right">
-            <p className="text-xs text-gray-400 mb-1">Desenvolvido com sofisticação por</p>
-            <a href="https://instagram.com/lucaswillame31" className="text-sm font-bold hover:text-[#D4AF37] transition-colors">@lucaswillame31</a>
           </div>
         </div>
       </footer>
@@ -350,124 +285,3 @@ const App = () => {
 };
 
 export default App;
-
-                            <label class="text-[10px] font-black uppercase tracking-widest text-atelier-gold">Preferência de Entrega</label>
-                            <select id="tipoEntrega" onchange="toggleEndereco()" class="w-full p-4 bg-gray-50 border-b-2 border-transparent focus:border-atelier-gold outline-none transition rounded-t-lg">
-                                <option value="retirada">Retirar no Ateliê</option>
-                                <option value="delivery">Receber em Casa (São Luís)</option>
-                            </select>
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-black uppercase tracking-widest text-atelier-gold">Data Pretendida</label>
-                            <input type="text" id="prazo" placeholder="Selecione no calendário" required class="w-full p-4 bg-gray-50 border-b-2 border-transparent focus:border-atelier-gold outline-none transition rounded-t-lg">
-                        </div>
-                    </div>
-
-                    <!-- Endereço -->
-                    <div id="secao-endereco" class="hidden space-y-4 animate__animated animate__fadeIn">
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-black uppercase tracking-widest text-atelier-gold">Endereço de Entrega</label>
-                            <input type="text" id="endereco" placeholder="Ex: Rua do Sol, Centro, São Luís" class="w-full p-4 bg-gray-100 border-b-2 border-transparent focus:border-atelier-gold outline-none transition rounded-t-lg">
-                        </div>
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black uppercase tracking-widest text-atelier-gold">Observações Adicionais</label>
-                        <textarea id="obs" rows="2" placeholder="Descreva detalhes da peça ou do ajuste..." class="w-full p-4 bg-gray-50 border-b-2 border-transparent focus:border-atelier-gold outline-none transition rounded-t-lg"></textarea>
-                    </div>
-
-                    <button type="submit" id="btnSubmit" class="w-full bg-atelier-dark text-white font-black py-5 rounded-2xl hover:bg-atelier-gold-dark transition-all transform hover:-translate-y-1 shadow-xl flex justify-center items-center gap-3 uppercase tracking-[0.2em] text-xs">
-                        <i class="fab fa-whatsapp text-xl"></i> Enviar Pedido Completo
-                    </button>
-                </form>
-            </div>
-        </div>
-    </section>
-
-    <!-- Rodapé -->
-    <footer class="bg-atelier-dark text-white py-12 px-6">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-            <div class="text-center md:text-left">
-                <span class="font-script text-3xl text-atelier-gold block mb-2">Ponto a Ponto</span>
-                <p class="text-xs text-gray-400 uppercase tracking-widest">Alta Costura & Ajustes Finos</p>
-            </div>
-            
-            <div class="flex items-center gap-8">
-                <a href="https://wa.me/559884490648" target="_blank" class="group flex items-center gap-3 text-sm font-bold hover:text-atelier-gold transition">
-                    <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-atelier-gold transition">
-                        <i class="fab fa-whatsapp"></i>
-                    </div>
-                    (98) 98449-0648
-                </a>
-                <a href="https://instagram.com/ateliepontoaponto.6173033" target="_blank" class="group flex items-center gap-3 text-sm font-bold hover:text-atelier-gold transition">
-                    <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-atelier-gold transition">
-                        <i class="fab fa-instagram"></i>
-                    </div>
-                    @ateliepontoaponto
-                </a>
-            </div>
-        </div>
-        <div class="max-w-7xl mx-auto mt-12 pt-8 border-t border-white/5 text-center text-[10px] text-gray-500 uppercase tracking-widest">
-            © 2026 Ateliê Ponto a Ponto - São Luís, Maranhão. Todos os direitos reservados.
-        </div>
-    </footer>
-
-    <!-- Scripts -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
-
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAg6XBoOZLuN847qL_5Yfy_mhVvsmgjXj4",
-            authDomain: "ateliepontoaponto-2a387.firebaseapp.com",
-            projectId: "ateliepontoaponto-2a387",
-            storageBucket: "ateliepontoaponto-2a387.firebasestorage.app",
-            appId: "1:219962438132:web:b15c200ae2a2183e4d89a1"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-
-        // Flatpickr
-        flatpickr("#prazo", { locale: "pt", minDate: "today", dateFormat: "d/m/Y" });
-
-        function toggleEndereco() {
-            const tipo = document.getElementById('tipoEntrega').value;
-            const secao = document.getElementById('secao-endereco');
-            tipo === 'delivery' ? secao.classList.remove('hidden') : secao.classList.add('hidden');
-        }
-
-        async function sendToWhatsApp(event) {
-            event.preventDefault();
-            const btn = document.getElementById('btnSubmit');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = `<i class="fas fa-spinner animate-spin"></i> ENVIANDO...`;
-            btn.disabled = true;
-
-            const dados = {
-                nome: document.getElementById('nome').value,
-                tipo: document.getElementById('peca').value,
-                entrega: document.getElementById('tipoEntrega').value,
-                endereco: document.getElementById('endereco').value || "Retirada no Ateliê",
-                prazo: document.getElementById('prazo').value,
-                obs: document.getElementById('obs').value,
-                dataCriacao: new Date().toISOString()
-            };
-
-            try {
-                const appId = "ateliepontoaponto-2a387";
-                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('pedidos').add(dados);
-
-                const msg = `*NOVO PEDIDO - PONTO A PONTO*%0A---------------------------%0A*Cliente:* ${dados.nome}%0A*Serviço:* ${dados.tipo}%0A*Entrega:* ${dados.entrega}%0A*Endereço:* ${dados.endereco}%0A*Data Pretendida:* ${dados.prazo}%0A*Observações:* ${dados.obs}`;
-                window.open(`https://wa.me/559884490648?text=${msg}`);
-            } catch (e) {
-                alert("Erro ao enviar. Verifique sua conexão.");
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
-        }
-    </script>
-</body>
-</html>
